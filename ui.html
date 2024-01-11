@@ -1,17 +1,32 @@
+<style>
+  #form {
+    display: flex;
+    flex-flow: column nowrap;
+  }
+</style>
+
 <h2>Figma Variabel Export</h2>
 <p>Choose which type of variables to export</p>
 <section id="form">
-  <label for="all">All</label>
-  <input type="radio" value="all" id="all" name="variable-type-option" checked>
+  <label for="all">All <input type="radio" value="all" id="all" name="variable-type-options" checked></label>
+  
+  <label for="color">Colors only <input type="radio" value="color" id="color" name="variable-type-options"></label>
+  
+  <label for="string">Strings only <input type="radio" value="string" id="string" name="variable-type-options"></label>
+  
+  <label for="float">Numbers only <input type="radio" value="float" id="float" name="variable-type-options"></label>
+  
+  <label for="boolean">Booleans only <input type="radio" value="boolean" id="boolean" name="variable-type-options"></label>
+  
 </section>
-<p>Klicka för att hämta variabler</p>
+<p>Click to export variables</p>
 <button id="export-btn">Export</button>
 
 <script>
 
 document.getElementById('export-btn').onclick = () => {
-  
-  parent.postMessage({ pluginMessage: { type: 'all'} }, '*')
+  const selectedVariablesType = document.querySelector('input[name="variable-type-options"]:checked')?.value
+  parent.postMessage({ pluginMessage: { type: selectedVariablesType } }, '*')
 }
 
 </script>
