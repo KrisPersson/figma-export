@@ -1,0 +1,17 @@
+<h2>Figma Variabel Export</h2>
+<p>Choose which type of variables to export</p>
+<section id="form">
+  <label for="all">All</label>
+  <input type="radio" value="all" id="all" name="variable-type-option" checked>
+</section>
+<p>Klicka för att hämta variabler</p>
+<button id="export-btn">Export</button>
+
+<script>
+
+document.getElementById('export-btn').onclick = () => {
+  
+  parent.postMessage({ pluginMessage: { type: 'all'} }, '*')
+}
+
+</script>
