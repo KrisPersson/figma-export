@@ -1,22 +1,46 @@
 <style>
+  body {
+    padding: 2rem;
+    margin: 0;
+    font-family: sans-serif;
+  }
   #form {
     display: flex;
     flex-flow: column nowrap;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 1rem;
+    position: relative;
+    background: white;
+  }
+  h2 {
+    margin-top: 0;
+  }
+  #form > p {
+    margin-top: 0;
+    position: absolute;
+    left: 1rem;
+    right: 0;
+    top: -0.5rem;
+    background: inherit;
+    width: fit-content;
+    padding: 0 0.5rem;
   }
 </style>
 
 <h2>Figma Variabel Export</h2>
-<p>Choose which type of variables to export</p>
 <section id="form">
-  <label for="all">All <input type="radio" value="all" id="all" name="variable-type-options" checked></label>
+<p>Choose which type of variables to export</p>
+
+  <label for="all"><input type="radio" value="all" id="all" name="variable-type-options" checked> All</label>
   
-  <label for="color">Colors only <input type="radio" value="color" id="color" name="variable-type-options"></label>
+  <label for="color"><input type="radio" value="color" id="color" name="variable-type-options"> Colors only</label>
   
-  <label for="string">Strings only <input type="radio" value="string" id="string" name="variable-type-options"></label>
+  <label for="string"><input type="radio" value="string" id="string" name="variable-type-options"> Strings only</label>
   
-  <label for="float">Numbers only <input type="radio" value="float" id="float" name="variable-type-options"></label>
+  <label for="float"><input type="radio" value="float" id="float" name="variable-type-options"> Numbers only</label>
   
-  <label for="boolean">Booleans only <input type="radio" value="boolean" id="boolean" name="variable-type-options"></label>
+  <label for="boolean"><input type="radio" value="boolean" id="boolean" name="variable-type-options"> Booleans only</label>
   
 </section>
 <p>Click to export variables</p>
