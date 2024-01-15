@@ -1,6 +1,6 @@
 
 import { TParsedColorObject, TTokenObject } from "./types";
-import { convertPercentageToRgb, isRgbaObject, isTokenObject } from "./utils"
+import { convertPercentageToRgb, isRgbaObject, isTokenObject, extractRoleFromWeight } from "./utils"
 
 
 figma.showUI(__html__);
@@ -20,10 +20,11 @@ figma.ui.onmessage = async msg => {
   const numberVariables = localVariables.filter(variable => variable.resolvedType === 'FLOAT')
   const stringVariables = localVariables.filter(variable => variable.resolvedType === 'STRING')
   const boolVariables = localVariables.filter(variable => variable.resolvedType === 'BOOLEAN')
-
+console.log(colorVariables)
   colorVariables.sort((a, b) => {
     if (isTokenObject(a.valuesByMode[Object.keys(a.valuesByMode)[0]])) {
-      return -1
+      console.log('is token!')
+      return 1
     } else {
       return 0
     }
@@ -32,12 +33,17 @@ figma.ui.onmessage = async msg => {
   const parsedColorObjects: TParsedColorObject[] = colorVariables.map((variable, i: Number) => {
     const identifier = Object.keys(variable.valuesByMode)[0]
     const groupAndColorName = variable.name.split('/')
+    const weight = variable.name.split(' ').find(item => { 
+      return item === '0' ? true : !!Number(item)
+    }) || ''
     const valuePath: VariableValue = variable.valuesByMode[identifier]
     return {
-      group: groupAndColorName[0],
-      name: groupAndColorName[groupAndColorName.length - 1],
+      group: groupAndColorName[0].toLowerCase(),
+      name: groupAndColorName[groupAndColorName.length - 1].toLowerCase(),
       value: isTokenObject(valuePath) ? { id: valuePath.id, type: valuePath.type } as TTokenObject : convertPercentageToRgb(variable.valuesByMode[identifier] as RGBA),
-      originalId: variable.id 
+      originalId: variable.id,
+      cssKey: isRgbaObject(valuePath) ? `--_palette-${groupAndColorName[0].toLowerCase()}-${weight}:` : 'token css key' ,
+      weight
     }
   })
   // const parsedFloatObjects = numberVariables.map(variable => {
@@ -51,25 +57,21 @@ figma.ui.onmessage = async msg => {
   //   }
   // })
   const cssColorString: string = parsedColorObjects.reduce((acc: string, cur: TParsedColorObject) => {
-    const label = cur.name.split(' ')[0].toLowerCase()
-    const weight = cur.name.split(' ').find(item => { 
-      return item === '0' ? true : !!Number(item)
-    })
     if (isRgbaObject(cur.value)) {
       const {r, g, b, a} = cur.value
-      return acc + `--_palette-${label}-${weight}: rgba(${r}, ${g}, ${b}, ${a});\n`
+      return acc + cur.cssKey + ` rgba(${r}, ${g}, ${b}, ${a});\n`
     } else if (isTokenObject(cur.value)) {
-      const curValue = cur.value as TTokenObject
-      const primitiveColor = parsedColorObjects.find(variable => {
-        return variable.originalId === curValue.id
-      })
-      const rgba = primitiveColor?.value
-      return acc + `--c-${label}-${'bg-or-fg'}: var(--_palette-${label}-${weight})`
+        const curValue = cur.value as TTokenObject
+        const primitiveColor = parsedColorObjects.find(variable => {
+          return variable.originalId === curValue.id
+        })
+      const cssKey = primitiveColor?.cssKey
+      return acc + `--c-${cur.group}-${'bg-or-fg'}: var(${cssKey?.toLocaleLowerCase()})`
     } else return acc
     
   }, '/* Palette */ \n')
   console.log(cssColorString)
-  figma.closePlugin();
+  // figma.closePlugin();
 };
 
 
