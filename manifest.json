@@ -2,16 +2,20 @@
   "name": "figma-export",
   "id": "1327243803633165242",
   "api": "1.0.0",
-  "main": "code.js",
-  "capabilities": [],
+  "main": "dist/code.js",
+  "capabilities": ["codegen", "vscode"],
   "enableProposedApi": false,
   "editorType": [
-    "figma"
+    "figma",
+    "dev"
   ],
   "ui": "ui.html",
   "networkAccess": {
     "allowedDomains": [
       "none"
     ]
-  }
+  },
+  "codegenLanguages": [
+    {"label": "CSS", "value": "CSS"}
+  ]
 }
