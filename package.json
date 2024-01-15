@@ -11,7 +11,9 @@
   "license": "",
   "devDependencies": {
     "@figma/plugin-typings": "^1.84.0",
-    "typescript": "*"
+    "typescript": "*",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
   },
   "dependencies": {
     "clipboardy": "^4.0.0"
