@@ -76,4 +76,20 @@ export function parseColorObjectsFromVariables(colorVariables: Variable[]) {
       }
     })
     return parsedColorObjects
+}
+
+export function parseFloatsObjectsFromVariables(numberVariables: Variable[]) {
+    const parsedFloatObjects = numberVariables.map(variable => {
+      const identifier = Object.keys(variable.valuesByMode)[0]
+      const groupAndName = variable.name.split('/')
+      
+      return {
+        group: groupAndName[0],
+        name: groupAndName[groupAndName.length - 1],
+        value: Number(variable.valuesByMode[identifier]),
+        cssKey: `--${groupAndName[groupAndName.length - 1].toLowerCase().replace(' ', '-')}`,
+        originalId: variable.id
+      }
+    })
+    return parsedFloatObjects
   }

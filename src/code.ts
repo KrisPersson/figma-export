@@ -1,6 +1,6 @@
 
 import { TParsedColorObject } from "./types";
-import { isVariableAlias, parseCssClassesColor, parseColorObjectsFromVariables  } from "./utils"
+import { isVariableAlias, parseCssClassesColor, parseColorObjectsFromVariables, parseFloatsObjectsFromVariables  } from "./utils"
 
 figma.showUI(__html__);
 figma.ui.resize(500, 300)
@@ -29,19 +29,14 @@ figma.ui.onmessage = async msg => {
   })
 
   const parsedColorObjects = parseColorObjectsFromVariables(colorVariables)
-  console.log(parseCssClassesColor(parsedColorObjects))
+  // console.log(parseCssClassesColor(parsedColorObjects))
 
-  // const parsedFloatObjects = numberVariables.map(variable => {
-  //   const identifier = Object.keys(variable.valuesByMode)[0]
-  //   const groupAndName = variable.name.split('/')
+  const parsedFloatObjects = parseFloatsObjectsFromVariables(numberVariables)
+  console.log(parsedFloatObjects)
 
-  //   return {
-  //     group: groupAndName[0],
-  //     name: groupAndName[groupAndName.length - 1],
-  //     value: variable.valuesByMode[identifier]
-  //   }
-  // })
-
+  function parseCssClassesNumbers() {
+    
+  }
   // figma.closePlugin();
 };
 
