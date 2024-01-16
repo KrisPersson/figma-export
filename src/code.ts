@@ -1,7 +1,6 @@
 
-import { TParsedColorObject, TTokenObject } from "./types";
-import { convertPercentageToRgb, isRgbaObject, isTokenObject, extractRoleFromWeight } from "./utils"
-
+import { TParsedColorObject } from "./types";
+import { convertPercentageToRgb, isRgbaObject, isVariableAlias  } from "./utils"
 
 figma.showUI(__html__);
 figma.ui.resize(500, 300)
@@ -20,11 +19,10 @@ figma.ui.onmessage = async msg => {
   const numberVariables = localVariables.filter(variable => variable.resolvedType === 'FLOAT')
   const stringVariables = localVariables.filter(variable => variable.resolvedType === 'STRING')
   const boolVariables = localVariables.filter(variable => variable.resolvedType === 'BOOLEAN')
-console.log(colorVariables)
+
   colorVariables.sort((a, b) => {
-    if (isTokenObject(a.valuesByMode[Object.keys(a.valuesByMode)[0]])) {
-      console.log('is token!')
-      return 1
+    if (isVariableAlias(a.valuesByMode[Object.keys(a.valuesByMode)[0]])) {
+      return -1
     } else {
       return 0
     }
@@ -40,9 +38,9 @@ console.log(colorVariables)
     return {
       group: groupAndColorName[0].toLowerCase(),
       name: groupAndColorName[groupAndColorName.length - 1].toLowerCase(),
-      value: isTokenObject(valuePath) ? { id: valuePath.id, type: valuePath.type } as TTokenObject : convertPercentageToRgb(variable.valuesByMode[identifier] as RGBA),
+      value: isVariableAlias(valuePath) ? { id: valuePath.id, type: valuePath.type } as VariableAlias : convertPercentageToRgb(valuePath as RGBA),
       originalId: variable.id,
-      cssKey: isRgbaObject(valuePath) ? `--_palette-${groupAndColorName[0].toLowerCase()}-${weight}:` : 'token css key' ,
+      cssKey: isRgbaObject(valuePath) ? `--_palette-${groupAndColorName[0].toLowerCase()}-${weight}` : 'token css key' ,
       weight
     }
   })
@@ -59,14 +57,14 @@ console.log(colorVariables)
   const cssColorString: string = parsedColorObjects.reduce((acc: string, cur: TParsedColorObject) => {
     if (isRgbaObject(cur.value)) {
       const {r, g, b, a} = cur.value
-      return acc + cur.cssKey + ` rgba(${r}, ${g}, ${b}, ${a});\n`
-    } else if (isTokenObject(cur.value)) {
-        const curValue = cur.value as TTokenObject
+      return acc + cur.cssKey + `: rgba(${r}, ${g}, ${b}, ${a});\n`
+    } else if (isVariableAlias(cur.value)) {
+        const curValue = cur.value as VariableAlias
         const primitiveColor = parsedColorObjects.find(variable => {
           return variable.originalId === curValue.id
         })
       const cssKey = primitiveColor?.cssKey
-      return acc + `--c-${cur.group}-${'bg-or-fg'}: var(${cssKey?.toLocaleLowerCase()})`
+      return acc + `--c-${cur.name.replace(' ', '-')}: var(${cssKey?.toLocaleLowerCase()});\n`
     } else return acc
     
   }, '/* Palette */ \n')
