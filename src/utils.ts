@@ -1,3 +1,4 @@
+import { TParsedColorObject } from "./types";
 
 export function convertPercentageToRgb(rgbObject: RGBA) {
     const { r, g, b, a } = rgbObject;
@@ -35,3 +36,44 @@ export function isRgbaObject(obj: any): obj is RGBA {
 export function isVariableAlias(obj: any): obj is VariableAlias {
     return obj.id && obj.type
 }
+
+export function parseCssClassesColor(parsedColorObjects: TParsedColorObject[]) {
+
+    const cssColorString: string = parsedColorObjects.reduce((acc: string, cur: TParsedColorObject) => {
+      if (isRgbaObject(cur.value)) {
+        const {r, g, b, a} = cur.value
+        return acc + cur.cssKey + `: rgba(${r}, ${g}, ${b}, ${a});\n`
+      } else if (isVariableAlias(cur.value)) {
+          const curValue = cur.value as VariableAlias
+          const primitiveColor = parsedColorObjects.find(variable => {
+            return variable.originalId === curValue.id
+          })
+        const cssKey = primitiveColor?.cssKey
+        return acc + `--c-${cur.name.replace(' ', '-')}: var(${cssKey?.toLocaleLowerCase()});\n`
+      } else return acc
+      
+    }, '/* Palette */ \n')
+  
+    return cssColorString
+  }
+
+export function parseColorObjectsFromVariables(colorVariables: Variable[]) {
+    
+    const parsedColorObjects: TParsedColorObject[] = colorVariables.map((variable, i: Number) => {
+      const identifier = Object.keys(variable.valuesByMode)[0]
+      const groupAndColorName = variable.name.split('/')
+      const weight = variable.name.split(' ').find(item => { 
+        return item === '0' ? true : !!Number(item)
+      }) || ''
+      const valuePath: VariableValue = variable.valuesByMode[identifier]
+      return {
+        group: groupAndColorName[0].toLowerCase(),
+        name: groupAndColorName[groupAndColorName.length - 1].toLowerCase(),
+        value: isVariableAlias(valuePath) ? { id: valuePath.id, type: valuePath.type } as VariableAlias : convertPercentageToRgb(valuePath as RGBA),
+        originalId: variable.id,
+        cssKey: isRgbaObject(valuePath) ? `--_palette-${groupAndColorName[0].toLowerCase()}-${weight}` : 'token css key',
+        weight
+      }
+    })
+    return parsedColorObjects
+  }

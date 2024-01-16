@@ -1,6 +1,6 @@
 
 import { TParsedColorObject } from "./types";
-import { convertPercentageToRgb, isRgbaObject, isVariableAlias  } from "./utils"
+import { isVariableAlias, parseCssClassesColor, parseColorObjectsFromVariables  } from "./utils"
 
 figma.showUI(__html__);
 figma.ui.resize(500, 300)
@@ -28,22 +28,9 @@ figma.ui.onmessage = async msg => {
     }
   })
 
-  const parsedColorObjects: TParsedColorObject[] = colorVariables.map((variable, i: Number) => {
-    const identifier = Object.keys(variable.valuesByMode)[0]
-    const groupAndColorName = variable.name.split('/')
-    const weight = variable.name.split(' ').find(item => { 
-      return item === '0' ? true : !!Number(item)
-    }) || ''
-    const valuePath: VariableValue = variable.valuesByMode[identifier]
-    return {
-      group: groupAndColorName[0].toLowerCase(),
-      name: groupAndColorName[groupAndColorName.length - 1].toLowerCase(),
-      value: isVariableAlias(valuePath) ? { id: valuePath.id, type: valuePath.type } as VariableAlias : convertPercentageToRgb(valuePath as RGBA),
-      originalId: variable.id,
-      cssKey: isRgbaObject(valuePath) ? `--_palette-${groupAndColorName[0].toLowerCase()}-${weight}` : 'token css key' ,
-      weight
-    }
-  })
+  const parsedColorObjects = parseColorObjectsFromVariables(colorVariables)
+  console.log(parseCssClassesColor(parsedColorObjects))
+
   // const parsedFloatObjects = numberVariables.map(variable => {
   //   const identifier = Object.keys(variable.valuesByMode)[0]
   //   const groupAndName = variable.name.split('/')
@@ -54,21 +41,7 @@ figma.ui.onmessage = async msg => {
   //     value: variable.valuesByMode[identifier]
   //   }
   // })
-  const cssColorString: string = parsedColorObjects.reduce((acc: string, cur: TParsedColorObject) => {
-    if (isRgbaObject(cur.value)) {
-      const {r, g, b, a} = cur.value
-      return acc + cur.cssKey + `: rgba(${r}, ${g}, ${b}, ${a});\n`
-    } else if (isVariableAlias(cur.value)) {
-        const curValue = cur.value as VariableAlias
-        const primitiveColor = parsedColorObjects.find(variable => {
-          return variable.originalId === curValue.id
-        })
-      const cssKey = primitiveColor?.cssKey
-      return acc + `--c-${cur.name.replace(' ', '-')}: var(${cssKey?.toLocaleLowerCase()});\n`
-    } else return acc
-    
-  }, '/* Palette */ \n')
-  console.log(cssColorString)
+
   // figma.closePlugin();
 };
 
