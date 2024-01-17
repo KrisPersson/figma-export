@@ -1,4 +1,4 @@
-import { TParsedColorObject } from "./types";
+import { TParsedColorObject, TParsedFloatObject } from "./types";
 
 export function convertPercentageToRgb(rgbObject: RGBA) {
     const { r, g, b, a } = rgbObject;
@@ -78,16 +78,27 @@ export function parseColorObjectsFromVariables(colorVariables: Variable[]) {
     return parsedColorObjects
 }
 
+export function parseCssClassesNumbers(parsedFloatObjects: TParsedFloatObject[]) {
+    const cssFloatsString = parsedFloatObjects.reduce((acc: string, cur) => {
+        return acc + `${cur.cssKey}: ${cur.value}${cur.cssUnit || ''};\n`
+    }, '/* Numbers */ \n' )
+
+    return cssFloatsString
+}
+
 export function parseFloatsObjectsFromVariables(numberVariables: Variable[]) {
     const parsedFloatObjects = numberVariables.map(variable => {
       const identifier = Object.keys(variable.valuesByMode)[0]
       const groupAndName = variable.name.split('/')
+      const group = groupAndName[0]
+      const name = groupAndName[groupAndName.length - 1]
       
       return {
-        group: groupAndName[0],
-        name: groupAndName[groupAndName.length - 1],
+        group,
+        name,
         value: Number(variable.valuesByMode[identifier]),
-        cssKey: `--${groupAndName[groupAndName.length - 1].toLowerCase().replace(' ', '-')}`,
+        cssUnit: 'px',
+        cssKey: `--${name.toLowerCase().replace(' ', '-')}`,
         originalId: variable.id
       }
     })

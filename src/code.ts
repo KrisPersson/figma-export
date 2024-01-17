@@ -1,19 +1,14 @@
 
 import { TParsedColorObject } from "./types";
-import { isVariableAlias, parseCssClassesColor, parseColorObjectsFromVariables, parseFloatsObjectsFromVariables  } from "./utils"
+import { isVariableAlias, parseCssClassesColor, parseColorObjectsFromVariables, parseFloatsObjectsFromVariables, parseCssClassesNumbers  } from "./utils"
 
 figma.showUI(__html__);
 figma.ui.resize(500, 300)
 figma.ui.onmessage = async msg => {
 
-  
-  // const nodes: SceneNode[] = [];
-  // const localCollections = figma.variables.getLocalVariableCollections();
-
   const localVariables = msg.type !== 'all' ? 
     figma.variables.getLocalVariables(msg.type.toUpperCase()) :
     figma.variables.getLocalVariables(); // argument optional to filter by variabel-type, for example "STRING"
-
 
   const colorVariables = localVariables.filter(variable => variable.resolvedType === 'COLOR')
   const numberVariables = localVariables.filter(variable => variable.resolvedType === 'FLOAT')
@@ -21,23 +16,19 @@ figma.ui.onmessage = async msg => {
   const boolVariables = localVariables.filter(variable => variable.resolvedType === 'BOOLEAN')
 
   colorVariables.sort((a, b) => {
-    if (isVariableAlias(a.valuesByMode[Object.keys(a.valuesByMode)[0]])) {
+    if (isVariableAlias(b.valuesByMode[Object.keys(b.valuesByMode)[0]])) {
       return -1
     } else {
       return 0
     }
   })
 
-  const parsedColorObjects = parseColorObjectsFromVariables(colorVariables)
-  // console.log(parseCssClassesColor(parsedColorObjects))
+  let outPut = ''
 
-  const parsedFloatObjects = parseFloatsObjectsFromVariables(numberVariables)
-  console.log(parsedFloatObjects)
+  if (colorVariables.length > 0) outPut += parseCssClassesColor(parseColorObjectsFromVariables(colorVariables))
+  if (numberVariables.length > 0) outPut += parseCssClassesNumbers(parseFloatsObjectsFromVariables(numberVariables))
 
-  function parseCssClassesNumbers() {
-    
-  }
+  console.log(outPut)
+
   // figma.closePlugin();
 };
-
-
