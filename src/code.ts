@@ -2,10 +2,10 @@
 import { parseCssClassesColor, parseColorObjectsFromVariables, parseFloatsObjectsFromVariables, parseCssClassesNumbers } from "./utils"
 
 figma.showUI(__html__);
-figma.ui.resize(500, 300)
+figma.ui.resize(500, 330)
 figma.ui.onmessage = async msg => {
 
-  const { type } = msg
+  const { type, outputFormat } = msg
 
   const localVariables = msg.type !== 'all' ? 
     figma.variables.getLocalVariables(type.toUpperCase()) :
@@ -18,8 +18,8 @@ figma.ui.onmessage = async msg => {
 
   let output = ''
 
-  if (colorVariables.length > 0) output += parseCssClassesColor(parseColorObjectsFromVariables(colorVariables))
-  if (numberVariables.length > 0) output += parseCssClassesNumbers(parseFloatsObjectsFromVariables(numberVariables))
+  if (colorVariables.length > 0) output += parseCssClassesColor(parseColorObjectsFromVariables(colorVariables, outputFormat), outputFormat)
+  if (numberVariables.length > 0) output += parseCssClassesNumbers(parseFloatsObjectsFromVariables(numberVariables, outputFormat))
   output += '\n'
   console.log(output)
 

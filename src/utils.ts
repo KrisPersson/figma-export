@@ -1,4 +1,4 @@
-import { TParsedColorObject, TParsedFloatObject } from "./types";
+import { TChosenOutputFormat, TParsedColorObject, TParsedFloatObject } from "./types";
 
 export function convertPercentageToRgba(rgbObject: RGBA) {
     const { r, g, b, a } = rgbObject;
@@ -37,7 +37,7 @@ export function isVariableAlias(obj: any): obj is VariableAlias {
   return obj.id && obj.type
 }
 
-export function parseCssClassesColor(parsedColorObjects: TParsedColorObject[]) {
+export function parseCssClassesColor(parsedColorObjects: TParsedColorObject[], outputFormat: TChosenOutputFormat) {
   let isFirstVariableAlias = true
 
   const cssColorString: string = parsedColorObjects.reduce((acc: string, cur: TParsedColorObject) => {
@@ -50,9 +50,10 @@ export function parseCssClassesColor(parsedColorObjects: TParsedColorObject[]) {
           return variable.originalId === curValue.id
         })
       const cssKey = primitiveColor?.cssKey
-      const lineBreak = isFirstVariableAlias ? '\n /* Global variables */ \n\n' : ''
+      const lineBreak = isFirstVariableAlias ? '\n/* Global variables */\n\n' : ''
       isFirstVariableAlias = false
-      return acc + lineBreak + `--c-${cur.name.replace(' ', '-')}: var(${cssKey?.toLocaleLowerCase()});\n`
+      const parsedKeyAndValue = outputFormat === 'sass' ? `$c-${cur.name.replace(' ', '-')}: ${cssKey?.toLocaleLowerCase()}` : `--c-${cur.name.replace(' ', '-')}: var(${cssKey?.toLocaleLowerCase()})`
+      return acc + lineBreak + `${parsedKeyAndValue};\n`
     } else return acc
     
   }, '/* Palette */ \n\n')
@@ -60,7 +61,7 @@ export function parseCssClassesColor(parsedColorObjects: TParsedColorObject[]) {
   return cssColorString
 }
 
-export function parseColorObjectsFromVariables(colorVariables: Variable[]) {
+export function parseColorObjectsFromVariables(colorVariables: Variable[], outputFormat: TChosenOutputFormat) {
 
   // Sorting variables so that token-variables (VariableAlias) are put at the end of the queue.
   colorVariables.sort((a, b) => {
@@ -71,7 +72,6 @@ export function parseColorObjectsFromVariables(colorVariables: Variable[]) {
     }
   })
 
-    
   const parsedColorObjects: TParsedColorObject[] = colorVariables.map((variable, i: Number) => {
     const identifier = Object.keys(variable.valuesByMode)[0]
     const groupAndColorName = variable.name.split('/')
@@ -79,13 +79,15 @@ export function parseColorObjectsFromVariables(colorVariables: Variable[]) {
       return item === '0' ? true : !!Number(item)
     }) || ''
     const valuePath: VariableValue = variable.valuesByMode[identifier]
+    const cssKey = `${outputFormat === 'sass' ? '$' : '--'}_palette-${groupAndColorName[0].toLowerCase()}-${weight}`
 
     return {
+
       group: groupAndColorName[0].toLowerCase(),
       name: groupAndColorName[groupAndColorName.length - 1].toLowerCase(),
       value: isVariableAlias(valuePath) ? { id: valuePath.id, type: valuePath.type } as VariableAlias : convertPercentageToRgba(valuePath as RGBA),
       originalId: variable.id,
-      cssKey: isRgbaObject(valuePath) ? `--_palette-${groupAndColorName[0].toLowerCase()}-${weight}` : 'token css key',
+      cssKey: isRgbaObject(valuePath) ? cssKey : 'token css key',
       weight
     }
   })
@@ -95,12 +97,12 @@ export function parseColorObjectsFromVariables(colorVariables: Variable[]) {
 export function parseCssClassesNumbers(parsedFloatObjects: TParsedFloatObject[]) {
   const cssFloatsString = parsedFloatObjects.reduce((acc: string, cur) => {
       return acc + `${cur.cssKey}: ${cur.value}${cur.cssUnit || ''};\n`
-  }, ' \n /* Numbers */ \n\n' )
+  }, ' \n/* Numbers */\n\n' )
 
   return cssFloatsString
 }
 
-export function parseFloatsObjectsFromVariables(numberVariables: Variable[]) {
+export function parseFloatsObjectsFromVariables(numberVariables: Variable[], outputFormat: TChosenOutputFormat) {
   const parsedFloatObjects = numberVariables.map(variable => {
     const identifier = Object.keys(variable.valuesByMode)[0]
     const groupAndName = variable.name.split('/')
@@ -112,7 +114,7 @@ export function parseFloatsObjectsFromVariables(numberVariables: Variable[]) {
       name,
       value: Number(variable.valuesByMode[identifier]),
       cssUnit: 'px',
-      cssKey: `--${name.toLowerCase().replace(' ', '-')}`,
+      cssKey: `${outputFormat === 'sass' ? '$' : '--' }${name.toLowerCase().replace(' ', '-')}`,
       originalId: variable.id
     }
   })
