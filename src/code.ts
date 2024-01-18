@@ -1,6 +1,5 @@
 
-import { TParsedColorObject } from "./types";
-import { isVariableAlias, parseCssClassesColor, parseColorObjectsFromVariables, parseFloatsObjectsFromVariables, parseCssClassesNumbers  } from "./utils"
+import { parseCssClassesColor, parseColorObjectsFromVariables, parseFloatsObjectsFromVariables, parseCssClassesNumbers } from "./utils"
 
 figma.showUI(__html__);
 figma.ui.resize(500, 300)
@@ -17,12 +16,12 @@ figma.ui.onmessage = async msg => {
   const stringVariables = type === 'all' || type === 'string' ? localVariables.filter(variable => variable.resolvedType === 'STRING') : []
   const boolVariables = type === 'all' || type === 'boolean' ? localVariables.filter(variable => variable.resolvedType === 'BOOLEAN') : []
 
-  let outPut = ''
+  let output = ''
 
-  if (colorVariables.length > 0) outPut += parseCssClassesColor(parseColorObjectsFromVariables(colorVariables))
-  if (numberVariables.length > 0) outPut += parseCssClassesNumbers(parseFloatsObjectsFromVariables(numberVariables))
-
-  console.log(outPut)
+  if (colorVariables.length > 0) output += parseCssClassesColor(parseColorObjectsFromVariables(colorVariables))
+  if (numberVariables.length > 0) output += parseCssClassesNumbers(parseFloatsObjectsFromVariables(numberVariables))
+  output += '\n'
+  console.log(output)
 
   // figma.closePlugin();
 };

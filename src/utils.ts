@@ -38,6 +38,7 @@ export function isVariableAlias(obj: any): obj is VariableAlias {
 }
 
 export function parseCssClassesColor(parsedColorObjects: TParsedColorObject[]) {
+  let isFirstVariableAlias = true
 
   const cssColorString: string = parsedColorObjects.reduce((acc: string, cur: TParsedColorObject) => {
     if (isRgbaObject(cur.value)) {
@@ -49,7 +50,9 @@ export function parseCssClassesColor(parsedColorObjects: TParsedColorObject[]) {
           return variable.originalId === curValue.id
         })
       const cssKey = primitiveColor?.cssKey
-      return acc + `--c-${cur.name.replace(' ', '-')}: var(${cssKey?.toLocaleLowerCase()});\n`
+      const lineBreak = isFirstVariableAlias ? '\n /* Global variables */ \n\n' : ''
+      isFirstVariableAlias = false
+      return acc + lineBreak + `--c-${cur.name.replace(' ', '-')}: var(${cssKey?.toLocaleLowerCase()});\n`
     } else return acc
     
   }, '/* Palette */ \n\n')
@@ -67,6 +70,7 @@ export function parseColorObjectsFromVariables(colorVariables: Variable[]) {
       return 0
     }
   })
+
     
   const parsedColorObjects: TParsedColorObject[] = colorVariables.map((variable, i: Number) => {
     const identifier = Object.keys(variable.valuesByMode)[0]
