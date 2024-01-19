@@ -109,13 +109,13 @@
 <button id="export-btn">Export</button>
 
 <script>
-  document.getElementById("export-btn").onclick = () => {
+  document.getElementById('export-btn').onclick = () => {
     const selectedVariablesType = document.querySelector(
-      'input[name="variable-type-options"]:checked',
-    )?.value;
+      'input[name="variable-type-options"]:checked'
+    )?.value
     const selectedOutputFormat = document.querySelector(
-      'input[name="output-options"]:checked',
-    )?.value;
+      'input[name="output-options"]:checked'
+    )?.value
 
     parent.postMessage(
       {
@@ -124,7 +124,7 @@
           outputFormat: selectedOutputFormat,
         },
       },
-      "*",
-    );
-  };
+      '*'
+    )
+  }
 </script>
