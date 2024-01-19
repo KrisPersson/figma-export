@@ -15,7 +15,6 @@
   }
   .output-form__p {
     margin: 0.8rem 0;
-
   }
   h2 {
     margin-top: 0;
@@ -39,31 +38,93 @@
 <section id="form">
   <p>Choose which type of variables to export</p>
 
-  <label for="all"><input type="radio" value="all" id="all" name="variable-type-options" checked> All</label>
-  
-  <label for="color"><input type="radio" value="color" id="color" name="variable-type-options"> Colors only</label>
-  
-  <label for="string"><input type="radio" value="string" id="string" name="variable-type-options"> Strings only</label>
-  
-  <label for="float"><input type="radio" value="float" id="float" name="variable-type-options"> Numbers only</label>
-  
-  <label for="boolean"><input type="radio" value="boolean" id="boolean" name="variable-type-options"> Booleans only</label>
-  
+  <label for="all"
+    ><input
+      type="radio"
+      value="all"
+      id="all"
+      name="variable-type-options"
+      checked
+    />
+    All</label
+  >
+
+  <label for="color"
+    ><input
+      type="radio"
+      value="color"
+      id="color"
+      name="variable-type-options"
+    />
+    Colors only</label
+  >
+
+  <label for="string"
+    ><input
+      type="radio"
+      value="string"
+      id="string"
+      name="variable-type-options"
+    />
+    Strings only</label
+  >
+
+  <label for="float"
+    ><input
+      type="radio"
+      value="float"
+      id="float"
+      name="variable-type-options"
+    />
+    Numbers only</label
+  >
+
+  <label for="boolean"
+    ><input
+      type="radio"
+      value="boolean"
+      id="boolean"
+      name="variable-type-options"
+    />
+    Booleans only</label
+  >
 </section>
 <section class="output-form">
   <p class="output-form__p">Output format:</p>
-  <label class="output-form__option" for="output-css"><input type="radio" value="css" id="output-css" name="output-options" checked> CSS</label>
-  <label class="output-form__option" for="output-sass"><input type="radio" value="sass" id="output-sass" name="output-options"> Sass</label>
+  <label class="output-form__option" for="output-css"
+    ><input
+      type="radio"
+      value="css"
+      id="output-css"
+      name="output-options"
+      checked
+    />
+    CSS</label
+  >
+  <label class="output-form__option" for="output-sass"
+    ><input type="radio" value="sass" id="output-sass" name="output-options" />
+    Sass</label
+  >
 </section>
 <button id="export-btn">Export</button>
 
 <script>
+  document.getElementById("export-btn").onclick = () => {
+    const selectedVariablesType = document.querySelector(
+      'input[name="variable-type-options"]:checked',
+    )?.value;
+    const selectedOutputFormat = document.querySelector(
+      'input[name="output-options"]:checked',
+    )?.value;
 
-  document.getElementById('export-btn').onclick = () => {
-    const selectedVariablesType = document.querySelector('input[name="variable-type-options"]:checked')?.value
-    const selectedOutputFormat = document.querySelector('input[name="output-options"]:checked')?.value
-
-    parent.postMessage({ pluginMessage: { type: selectedVariablesType, outputFormat: selectedOutputFormat } }, '*')
-  }
-
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: selectedVariablesType,
+          outputFormat: selectedOutputFormat,
+        },
+      },
+      "*",
+    );
+  };
 </script>

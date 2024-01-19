@@ -5,17 +5,10 @@
   "main": "dist/code.js",
   "capabilities": ["codegen", "vscode"],
   "enableProposedApi": false,
-  "editorType": [
-    "figma",
-    "dev"
-  ],
+  "editorType": ["figma", "dev"],
   "ui": "ui.html",
   "networkAccess": {
-    "allowedDomains": [
-      "none"
-    ]
+    "allowedDomains": ["none"]
   },
-  "codegenLanguages": [
-    {"label": "CSS", "value": "CSS"}
-  ]
+  "codegenLanguages": [{ "label": "CSS", "value": "CSS" }]
 }
