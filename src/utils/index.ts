@@ -2,7 +2,11 @@ import {
   TChosenOutputFormat,
   TParsedColorObject,
   TParsedFloatObject,
-} from './types'
+} from '../types'
+
+import { sortColorVariables } from './sorting'
+
+import { isRgbaObject, isVariableAlias } from './typeguards'
 
 export function convertPercentageToRgba(rgbObject: RGBA) {
   const { r, g, b, a } = rgbObject
@@ -32,13 +36,6 @@ export function extractRoleFromWeight(weight: number) {
     default:
       throw new Error('No case matched at function extractRoleFromWeight')
   }
-}
-
-export function isRgbaObject(obj: any): obj is RGBA {
-  return obj.hasOwnProperty('r') && obj.hasOwnProperty('g') && obj.hasOwnProperty('b') && obj.hasOwnProperty('a')
-}
-export function isVariableAlias(obj: any): obj is VariableAlias {
-  return obj.id && obj.type
 }
 
 export function parseCssClassesColor(
@@ -75,7 +72,7 @@ export function parseCssClassesColor(
   return cssColorString
 }
 
-function extractWeight(groupAndColorName: string[]) {
+export function extractWeight(groupAndColorName: string[]) {
   const weight = groupAndColorName.find((item: string) => {
     const string = item.replace('%', '')
     return string === '0' ? true : !!Number(string)
@@ -94,7 +91,7 @@ function parseNameAndCssKey(variable: Variable, outputFormat: string) {
   const primitiveName = groupAndColorName[groupAndColorName.length - 1].toLowerCase()
   const tokenName = groupAndColorName.join('-').toLowerCase()
   const valuePath: VariableValue = variable.valuesByMode[identifier]
-  if (groupAndColorName.includes('Blue') && weight == '500') console.log(valuePath)
+  // if (groupAndColorName.includes('Blue') && weight == '500') console.log(valuePath)
 
   const cssKey = isRgbaObject(valuePath) ? `${outputFormat === 'sass' ? '$' : '--'}_palette-${primitiveName.toLowerCase()}${weight ? '-' + weight.toString() : ''}`.replace(' ', '-').replace('%', '') :
   `${outputFormat === 'sass' ? '$' : '--'}c-${tokenName}`.replace(' ', '-').replace('%', '')
@@ -106,21 +103,16 @@ export function parseColorObjectsFromVariables(
   outputFormat: TChosenOutputFormat
 ) {
   // Sorting variables so that token-variables (VariableAlias) are put at the end of the queue.
-  colorVariables.sort((a, b) => {
-    if (isVariableAlias(b.valuesByMode[Object.keys(b.valuesByMode)[0]])) {
-      return -1
-    } else {
-      return 0
-    }
-  })
 
-  const parsedColorObjects: TParsedColorObject[] = colorVariables.map(
+  const sortedColorVariables = sortColorVariables(colorVariables)
+
+  const parsedColorObjects: TParsedColorObject[] = sortedColorVariables.map(
     (variable, i: Number) => {
       const identifier = Object.keys(variable.valuesByMode)[0]
       const valuePath: VariableValue = variable.valuesByMode[identifier]
       const groupAndColorName: string[] = variable.name.split('/')
       const {cssKey, name, weight} = parseNameAndCssKey(variable, outputFormat)
-
+      // if (cssKey === '--_palette-light-50') console.log(isRgbaObject(valuePath), variable.id)
       return {
         group: groupAndColorName[0].toLowerCase(),
         name: name.toLowerCase(),
@@ -136,7 +128,7 @@ export function parseColorObjectsFromVariables(
       }
     }
   )
-  console.log(parsedColorObjects)
+  // console.log(parsedColorObjects)
   return parsedColorObjects
 }
 
