@@ -10,3 +10,7 @@ export function isRgbaObject(obj: any): obj is RGBA {
 export function isVariableAlias(obj: any): obj is VariableAlias {
   return obj.hasOwnProperty('id') && obj.type === 'VARIABLE_ALIAS'
 }
+
+export function isNumericValue(obj: any): obj is Number {
+  return typeof obj === 'number'
+}

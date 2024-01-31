@@ -1,6 +1,6 @@
 import { TChosenOutputFormat, TParsedColorObject } from '../types'
 
-import { parseNameAndCssKey } from './parsingCss'
+import { parseColorNameAndCssKey } from './parsingCss'
 
 import { sortColorVariables } from './sorting'
 
@@ -58,7 +58,7 @@ export function parseColorObjectsFromVariables(
       const identifier = Object.keys(variable.valuesByMode)[0]
       const valuePath: VariableValue = variable.valuesByMode[identifier]
       const groupAndColorName: string[] = variable.name.split('/')
-      const { cssKey, name, weight } = parseNameAndCssKey(
+      const { cssKey, name, weight } = parseColorNameAndCssKey(
         variable,
         outputFormat
       )
@@ -86,6 +86,7 @@ export function parseFloatsObjectsFromVariables(
 ) {
   const parsedFloatObjects = numberVariables.map((variable) => {
     const identifier = Object.keys(variable.valuesByMode)[0]
+    const valuePath: VariableValue = variable.valuesByMode[identifier]
     const groupAndName = variable.name.split('/')
     const group = groupAndName[0]
     const name = groupAndName[groupAndName.length - 1]
@@ -93,11 +94,12 @@ export function parseFloatsObjectsFromVariables(
     return {
       group,
       name,
-      value: Number(variable.valuesByMode[identifier]),
-      cssUnit: 'px',
-      cssKey: `${outputFormat === 'sass' ? '$' : '--'}${name.toLowerCase().replace(' ', '-')}`,
+      value: isVariableAlias(valuePath) ? { ...valuePath } as VariableAlias : Number(variable.valuesByMode[identifier]),
+      cssUnit: isVariableAlias(valuePath) ? '' : 'px',
+      cssKey: isVariableAlias(valuePath) ? `${outputFormat === 'sass' ? '$' : '--'}${name.toLowerCase().replace(' ', '-')}` : `${outputFormat === 'sass' ? '$' : '--'}${name.toLowerCase().replace(' ', '-')}`,
       originalId: variable.id,
     }
   })
+  console.log(parsedFloatObjects, numberVariables)
   return parsedFloatObjects
 }
