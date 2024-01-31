@@ -1,9 +1,9 @@
 import {
-  parseCssClassesColor,
   parseColorObjectsFromVariables,
-  parseFloatsObjectsFromVariables,
-  parseCssClassesNumbers,
+  parseFloatsObjectsFromVariables
 } from './utils'
+
+import { parseCssClassesColor, parseCssClassesNumbers } from "./utils/parsingCss"
 
 figma.showUI(__html__)
 figma.ui.resize(500, 330)

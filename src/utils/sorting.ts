@@ -18,7 +18,7 @@ export function sortColorVariables(colorVariables: Variable[]) {
     primitives.sort((a, b) => {
         const groupAndColorNameA: string = a.name
         const groupAndColorNameB: string = b.name
-        let aWeight: string = extractWeight(groupAndColorNameA.split('/'))
+        let aWeight = extractWeight(groupAndColorNameA.split('/'))
         let bWeight = extractWeight(groupAndColorNameB.split('/'))
         const aNameMinusWeight = groupAndColorNameA.split('/').filter(part => part !== aWeight).join('')
         const bNameMinusWeight = groupAndColorNameB.split('/').filter(part => part !== bWeight).join('')
