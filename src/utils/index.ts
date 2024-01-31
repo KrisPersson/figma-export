@@ -1,9 +1,6 @@
-import {
-  TChosenOutputFormat,
-  TParsedColorObject
-} from '../types'
+import { TChosenOutputFormat, TParsedColorObject } from '../types'
 
-import { parseNameAndCssKey } from "./parsingCss"
+import { parseNameAndCssKey } from './parsingCss'
 
 import { sortColorVariables } from './sorting'
 
@@ -21,10 +18,11 @@ export function convertPercentageToRgba(rgbObject: RGBA) {
 }
 
 export function extractWeight(groupAndColorName: string[]) {
-  const weight = groupAndColorName.find((item: string) => {
-    const string = item.replace('%', '')
-    return string === '0' ? true : !!Number(string)
-  }) || ''
+  const weight =
+    groupAndColorName.find((item: string) => {
+      const string = item.replace('%', '')
+      return string === '0' ? true : !!Number(string)
+    }) || ''
   return weight
 }
 
@@ -60,8 +58,10 @@ export function parseColorObjectsFromVariables(
       const identifier = Object.keys(variable.valuesByMode)[0]
       const valuePath: VariableValue = variable.valuesByMode[identifier]
       const groupAndColorName: string[] = variable.name.split('/')
-      const {cssKey, name, weight} = parseNameAndCssKey(variable, outputFormat)
-      // if (cssKey === '--_palette-light-50') console.log(isRgbaObject(valuePath), variable.id)
+      const { cssKey, name, weight } = parseNameAndCssKey(
+        variable,
+        outputFormat
+      )
       return {
         group: groupAndColorName[0].toLowerCase(),
         name: name.toLowerCase(),
@@ -77,10 +77,8 @@ export function parseColorObjectsFromVariables(
       }
     }
   )
-  // console.log(parsedColorObjects)
   return parsedColorObjects
 }
-
 
 export function parseFloatsObjectsFromVariables(
   numberVariables: Variable[],
