@@ -16,6 +16,14 @@ export type TParsedFloatObject = {
   cssUnit: TCssUnit
 }
 
+export type TParsedStringObject = {
+  group: string
+  name: string
+  value: string | VariableAlias
+  originalId: string
+  cssKey: string
+}
+
 export type TCssUnit = 'px' | 'rem' | '%' | 'em' | string
 
 export type TChosenOutputFormat = 'css' | 'sass'

@@ -104,6 +104,30 @@ export function parseFloatsObjectsFromVariables(
       originalId: variable.id,
     }
   })
-  console.log(parsedFloatObjects, numberVariables)
   return parsedFloatObjects
+}
+
+export function parseStringObjectsFromVariables(
+  stringVariables: Variable[],
+  outputFormat: TChosenOutputFormat
+) {
+  const parsedStringObjects = stringVariables.map((variable) => {
+    const identifier = Object.keys(variable.valuesByMode)[0]
+    const valuePath: VariableValue = variable.valuesByMode[identifier]
+    const groupAndName = variable.name.split('/').map(cur => cur.toLowerCase().replace(' ', '-'))
+    const group = groupAndName[0]
+    const name = groupAndName[groupAndName.length - 1]
+    return {
+      group,
+      name,
+      value: isVariableAlias(valuePath)
+        ? ({ ...valuePath } as VariableAlias)
+        : variable.valuesByMode[identifier].toString(),
+      cssKey: isVariableAlias(valuePath)
+        ? `${outputFormat === 'sass' ? '$' : '--'}${groupAndName.join('-')}`
+        : `${outputFormat === 'sass' ? '$' : '--_'}${name.toLowerCase().replace(' ', '-')}`,
+      originalId: variable.id,
+    }
+  })
+  return parsedStringObjects
 }

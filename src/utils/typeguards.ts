@@ -14,3 +14,7 @@ export function isVariableAlias(obj: any): obj is VariableAlias {
 export function isNumericValue(obj: any): obj is Number {
   return typeof obj === 'number'
 }
+
+export function isStringValue(obj: any): obj is string {
+  return typeof obj === 'string'
+}

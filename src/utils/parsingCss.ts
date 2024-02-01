@@ -2,8 +2,9 @@ import {
   TParsedFloatObject,
   TParsedColorObject,
   TChosenOutputFormat,
+  TParsedStringObject
 } from '../types'
-import { isRgbaObject, isVariableAlias, isNumericValue } from './typeguards'
+import { isRgbaObject, isVariableAlias, isNumericValue, isStringValue } from './typeguards'
 import { extractWeight } from './index'
 
 export function parseCssClassesNumbers(
@@ -64,6 +65,40 @@ export function parseCssClassesColor(
 
   return cssColorString
 }
+
+export function parseCssClassesStrings(
+  parsedStringObjects: TParsedStringObject[],
+  outputFormat: TChosenOutputFormat
+) {
+  let isFirstVariableAlias = true
+
+  const cssStringString: string = parsedStringObjects.reduce(
+    (acc: string, cur: TParsedStringObject) => {
+      if (isStringValue(cur.value)) {
+        return acc + cur.cssKey + `: '${cur.value}';\n`
+      } else if (isVariableAlias(cur.value)) {
+        const curValue = cur.value as VariableAlias
+        const primitiveString = parsedStringObjects.find((variable) => {
+          return variable.originalId === curValue.id
+        })
+        const primitiveCssKey = primitiveString?.cssKey
+        const lineBreak = isFirstVariableAlias
+          ? '\n/* String Tokens */\n\n'
+          : ''
+        isFirstVariableAlias = false
+        const parsedKeyAndValue =
+          outputFormat === 'sass'
+            ? `$${cur.name.replace(' ', '-')}: ${primitiveCssKey?.toLowerCase()}`
+            : `--${cur.name.replace(' ', '-')}: var(${primitiveCssKey?.toLowerCase()})`
+        return acc + lineBreak + `${parsedKeyAndValue};\n`
+      } else return acc
+    },
+    '/* Strings */\n\n'
+  )
+
+  return cssStringString
+}
+
 
 export function parseColorNameAndCssKey(
   variable: Variable,
