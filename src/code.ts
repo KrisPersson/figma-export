@@ -36,7 +36,7 @@ figma.ui.onmessage = async (msg) => {
       : []
 
   let output = ''
-  // console.log(colorVariables)
+  // console.log(boolVariables)
 
   if (colorVariables.length > 0)
     output += parseCssClassesColor(
@@ -49,6 +49,7 @@ figma.ui.onmessage = async (msg) => {
     )
   output += '\n'
   console.log(output)
+  
 
   // figma.closePlugin();
 }

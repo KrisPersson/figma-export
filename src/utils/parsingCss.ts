@@ -9,24 +9,27 @@ import { extractWeight } from './index'
 export function parseCssClassesNumbers(
   parsedFloatObjects: TParsedFloatObject[]
 ) {
-  const cssFloatsString = parsedFloatObjects.reduce((acc: string, cur: TParsedFloatObject) => {
-    if (isNumericValue(cur.value)) {
-      return acc + `${cur.cssKey}: ${cur.value}${cur.cssUnit || ''};\n`
-    } else if (isVariableAlias(cur.value)) {
-      const curValue = cur.value as VariableAlias
-      const primitiveNumber = parsedFloatObjects.find((variable) => {
-        return variable.originalId === curValue.id
-      })
-      const primitiveCssKey = primitiveNumber?.cssKey
-
-      return acc + `${cur.cssKey}: var(${primitiveCssKey});\n`
-    } else {
-      return acc + `\n`
-    }
-  }, ' \n/* Numbers */\n\n')
+  const cssFloatsString = parsedFloatObjects.reduce(
+    (acc: string, cur: TParsedFloatObject) => {
+      if (isNumericValue(cur.value)) {
+        return acc + `${cur.cssKey}: ${cur.value}${cur.cssUnit || ''};\n`
+      } else if (isVariableAlias(cur.value)) {
+        const curValue = cur.value as VariableAlias
+        const primitiveNumber = parsedFloatObjects.find((variable) => {
+          return variable.originalId === curValue.id
+        })
+        const primitiveCssKey = primitiveNumber?.cssKey
+        // if (cur.cssKey === '--input-field-icon size') console.log('found it')
+        return acc + `${cur.cssKey}: var(${primitiveCssKey});\n`
+      } else {
+        return acc + `\n`
+      }
+    },
+    ' \n/* Numbers */\n\n'
+  )
 
   return cssFloatsString
-} 
+}
 
 export function parseCssClassesColor(
   parsedColorObjects: TParsedColorObject[],
@@ -62,7 +65,10 @@ export function parseCssClassesColor(
   return cssColorString
 }
 
-export function parseColorNameAndCssKey(variable: Variable, outputFormat: string) {
+export function parseColorNameAndCssKey(
+  variable: Variable,
+  outputFormat: string
+) {
   const identifier = Object.keys(variable.valuesByMode)[0]
   let groupAndColorName: string[] = variable.name.split('/')
 

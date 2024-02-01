@@ -87,16 +87,20 @@ export function parseFloatsObjectsFromVariables(
   const parsedFloatObjects = numberVariables.map((variable) => {
     const identifier = Object.keys(variable.valuesByMode)[0]
     const valuePath: VariableValue = variable.valuesByMode[identifier]
-    const groupAndName = variable.name.split('/')
+    const groupAndName = variable.name.split('/').map(cur => cur.toLowerCase().replace(' ', '-'))
     const group = groupAndName[0]
     const name = groupAndName[groupAndName.length - 1]
-
+    if (groupAndName.includes('Input Field')) console.log(groupAndName)
     return {
       group,
       name,
-      value: isVariableAlias(valuePath) ? { ...valuePath } as VariableAlias : Number(variable.valuesByMode[identifier]),
+      value: isVariableAlias(valuePath)
+        ? ({ ...valuePath } as VariableAlias)
+        : Number(variable.valuesByMode[identifier]),
       cssUnit: isVariableAlias(valuePath) ? '' : 'px',
-      cssKey: isVariableAlias(valuePath) ? `${outputFormat === 'sass' ? '$' : '--'}${name.toLowerCase().replace(' ', '-')}` : `${outputFormat === 'sass' ? '$' : '--'}${name.toLowerCase().replace(' ', '-')}`,
+      cssKey: isVariableAlias(valuePath)
+        ? `${outputFormat === 'sass' ? '$' : '--'}${groupAndName.join('-')}`
+        : `${outputFormat === 'sass' ? '$' : '--_num-scale-'}${name.toLowerCase().replace(' ', '-')}`,
       originalId: variable.id,
     }
   })

@@ -144,4 +144,54 @@
   --border-active: (var(--c-primary-border-darker));
 
   --c-primary-border-darker: (var(--spacing-large));
+
+
+  /* Numbers */
+
+--_num-scale-3xs: 2px;
+--_num-scale-2xs: 4px;
+--_num-scale-xs: 6px;
+--_num-scale-s: 8px;
+--_num-scale-m: 12px;
+--_num-scale-l: 16px;
+--_num-scale-xl: 20px;
+--_num-scale-2xl: 24px;
+--_num-scale-3xl: 32px;
+--_num-scale-4xl: 40px;
+--_num-scale-full: 999px;
+--radius-xs: var(--_num-scale-3xs);
+--radius-s: var(--_num-scale-xs);
+--radius-m: var(--_num-scale-s);
+--radius-l: var(--_num-scale-l);
+--radius-xl: var(--_num-scale-2xl);
+--radius-full: var(--_num-scale-full);
+--radius-s: var(--radius-m);
+--radius-m: var(--radius-l);
+--radius-l: var(--radius-xl);
+--spacing-s: var(--_num-scale-2xs);
+--spacing-m: var(--_num-scale-s);
+--spacing-l: var(--_num-scale-m);
+--h-padding-s: var(--_num-scale-l);
+--h-padding-m: var(--_num-scale-xl);
+--h-padding-l: var(--_num-scale-2xl);
+--v-padding-s: var(--_num-scale-s);
+--v-padding-m: var(--_num-scale-m);
+--v-padding-l: var(--_num-scale-l);
+--full-padding-s: var(--_num-scale-s);
+--full-padding-m: var(--_num-scale-m);
+--full-padding-l: var(--_num-scale-l);
+--icon-size-s: var(--_num-scale-l);
+--icon-size-m: var(--_num-scale-xl);
+--icon-size-l: var(--_num-scale-2xl);
+--input-field-radius: var(--radius-m);
+--input-field-spacing: var(--_num-scale-s);
+--input-field-h-padding: var(--h-padding-s);
+--input-field-v-padding: var(--_num-scale-xs);
+--input-field-icon size: var(--icon-size-l);
+--checkbox-radius: var(--radius-s);
+--checkbox-size: var(--_num-scale-2xl);
+--checkbox-full-padding: var(--_num-scale-3xs);
+--radio-radius: var(--radius-full);
+--radio-size: var(--_num-scale-2xl);
+--radio-full-padding: var(--_num-scale-2xs);
 }
