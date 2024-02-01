@@ -47,7 +47,8 @@ figma.ui.onmessage = async (msg) => {
     )
   if (numberVariables.length > 0)
     output += parseCssClassesNumbers(
-      parseFloatsObjectsFromVariables(numberVariables, outputFormat)
+      parseFloatsObjectsFromVariables(numberVariables, outputFormat),
+      outputFormat
     )
   if (stringVariables.length > 0)
     output += parseCssClassesStrings(

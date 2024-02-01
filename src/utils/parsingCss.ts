@@ -13,8 +13,11 @@ import {
 import { extractWeight } from './index'
 
 export function parseCssClassesNumbers(
-  parsedFloatObjects: TParsedFloatObject[]
+  parsedFloatObjects: TParsedFloatObject[],
+  outputFormat: TChosenOutputFormat
 ) {
+  let isFirstVariableAlias = true
+
   const cssFloatsString = parsedFloatObjects.reduce(
     (acc: string, cur: TParsedFloatObject) => {
       if (isNumericValue(cur.value)) {
@@ -25,8 +28,16 @@ export function parseCssClassesNumbers(
           return variable.originalId === curValue.id
         })
         const primitiveCssKey = primitiveNumber?.cssKey
+        const lineBreak = isFirstVariableAlias
+          ? '\n/* Sizing Tokens */\n\n'
+          : ''
+        isFirstVariableAlias = false
         // if (cur.cssKey === '--input-field-icon size') console.log('found it')
-        return acc + `${cur.cssKey}: var(${primitiveCssKey});\n`
+        const parsedKeyAndValue =
+          outputFormat === 'sass'
+            ? `${cur.cssKey}: ${primitiveCssKey?.toLowerCase()}`
+            : `${cur.cssKey}: var(${primitiveCssKey?.toLowerCase()})`
+        return acc + lineBreak + `${parsedKeyAndValue};\n`
       } else {
         return acc + `\n`
       }
@@ -63,7 +74,7 @@ export function parseCssClassesColor(
             ? `$c-${cur.name.replace(' ', '-')}${cur.weight ? '-' + cur.weight : ''}: ${primitiveCssKey?.toLowerCase()}`
             : `--c-${cur.name.replace(' ', '-')}${cur.weight ? '-' + cur.weight : ''}: var(${primitiveCssKey?.toLowerCase()})`
         return acc + lineBreak + `${parsedKeyAndValue};\n`
-      } else return acc
+      } else return acc + `\n`
     },
     '/* Palette */\n\n'
   )
@@ -96,9 +107,9 @@ export function parseCssClassesStrings(
             ? `$${cur.name.replace(' ', '-')}: ${primitiveCssKey?.toLowerCase()}`
             : `--${cur.name.replace(' ', '-')}: var(${primitiveCssKey?.toLowerCase()})`
         return acc + lineBreak + `${parsedKeyAndValue};\n`
-      } else return acc
+      } else return acc + `\n`
     },
-    '/* Strings */\n\n'
+    '\n/* Strings */\n\n'
   )
 
   return cssStringString
@@ -136,6 +147,6 @@ export function parseColorNameAndCssKey(
   return {
     cssKey,
     name: isRgbaObject(valuePath) ? primitiveName : tokenName,
-    weight,
+    weight
   }
 }
