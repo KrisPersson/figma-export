@@ -18,3 +18,7 @@ export function isNumericValue(obj: any): obj is Number {
 export function isStringValue(obj: any): obj is string {
   return typeof obj === 'string'
 }
+
+export function isMediaQuery(groupAndName: string[]) {
+  return groupAndName.includes('desktop') || groupAndName.includes('mobile')
+}

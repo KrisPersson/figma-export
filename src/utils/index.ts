@@ -4,7 +4,7 @@ import { parseColorNameAndCssKey } from './parsingCss'
 
 import { sortColorVariables } from './sorting'
 
-import { isVariableAlias } from './typeguards'
+import { isVariableAlias, isMediaQuery, isNumericValue } from './typeguards'
 
 export function convertPercentageToRgba(rgbObject: RGBA) {
   const { r, g, b, a } = rgbObject
@@ -92,18 +92,23 @@ export function parseFloatsObjectsFromVariables(
       .map((cur) => cur.toLowerCase().replace(' ', '-'))
     const group = groupAndName[0]
     const name = groupAndName[groupAndName.length - 1]
-    if (groupAndName.includes('Input Field')) console.log(groupAndName)
+    const mqType = isMediaQuery(groupAndName) ? groupAndName.find(cur => cur.toLowerCase() === 'desktop' || cur.toLowerCase() === 'mobile') : ''
+    const mqParsedKey = isMediaQuery(groupAndName) ? groupAndName.filter(cur => cur !== mqType) : []
+    if (mqType) mqParsedKey.push(mqType)
     return {
       group,
       name,
       value: isVariableAlias(valuePath)
         ? ({ ...valuePath } as VariableAlias)
         : Number(variable.valuesByMode[identifier]),
-      cssUnit: isVariableAlias(valuePath) ? '' : 'px',
-      cssKey: isVariableAlias(valuePath)
+      cssUnit: isNumericValue(valuePath) ? 'px' : '',
+      cssKey: isVariableAlias(valuePath) && !isMediaQuery(groupAndName)
         ? `${outputFormat === 'sass' ? '$' : '--'}${groupAndName.join('-')}`
-        : `${outputFormat === 'sass' ? '$' : '--_num-scale-'}${name.toLowerCase().replace(' ', '-')}`,
+        : isVariableAlias(valuePath) && isMediaQuery(groupAndName) 
+        ? `${outputFormat === 'sass' ? '$' : '--'}_mq-${mqParsedKey.join('-').toLowerCase().replace(' ', '-')}`  
+        : `${outputFormat === 'sass' ? '$' : '--'}_scale-${name.toLowerCase().replace(' ', '-')}`,
       originalId: variable.id,
+
     }
   })
   return parsedFloatObjects
@@ -130,7 +135,7 @@ export function parseStringObjectsFromVariables(
       cssKey: isVariableAlias(valuePath)
         ? `${outputFormat === 'sass' ? '$' : '--'}${groupAndName.join('-')}`
         : `${outputFormat === 'sass' ? '$' : '--_'}${name.toLowerCase().replace(' ', '-')}`,
-      originalId: variable.id,
+      originalId: variable.id
     }
   })
   return parsedStringObjects
