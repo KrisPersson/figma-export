@@ -2,9 +2,14 @@ import {
   TParsedFloatObject,
   TParsedColorObject,
   TChosenOutputFormat,
-  TParsedStringObject
+  TParsedStringObject,
 } from '../types'
-import { isRgbaObject, isVariableAlias, isNumericValue, isStringValue } from './typeguards'
+import {
+  isRgbaObject,
+  isVariableAlias,
+  isNumericValue,
+  isStringValue,
+} from './typeguards'
 import { extractWeight } from './index'
 
 export function parseCssClassesNumbers(
@@ -98,7 +103,6 @@ export function parseCssClassesStrings(
 
   return cssStringString
 }
-
 
 export function parseColorNameAndCssKey(
   variable: Variable,

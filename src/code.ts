@@ -1,13 +1,13 @@
 import {
   parseColorObjectsFromVariables,
   parseFloatsObjectsFromVariables,
-  parseStringObjectsFromVariables
+  parseStringObjectsFromVariables,
 } from './utils'
 
 import {
   parseCssClassesColor,
   parseCssClassesNumbers,
-  parseCssClassesStrings
+  parseCssClassesStrings,
 } from './utils/parsingCss'
 
 figma.showUI(__html__)
@@ -40,25 +40,22 @@ figma.ui.onmessage = async (msg) => {
   let output = ''
   console.log(parseStringObjectsFromVariables(stringVariables, outputFormat))
 
-  
-
   if (colorVariables.length > 0)
     output += parseCssClassesColor(
       parseColorObjectsFromVariables(colorVariables, outputFormat),
       outputFormat
-  )
+    )
   if (numberVariables.length > 0)
     output += parseCssClassesNumbers(
       parseFloatsObjectsFromVariables(numberVariables, outputFormat)
-  )
+    )
   if (stringVariables.length > 0)
     output += parseCssClassesStrings(
-      parseStringObjectsFromVariables(stringVariables, outputFormat), outputFormat
-  )
+      parseStringObjectsFromVariables(stringVariables, outputFormat),
+      outputFormat
+    )
   output += '\n'
   console.log(output)
 
   // figma.closePlugin();
 }
-
-

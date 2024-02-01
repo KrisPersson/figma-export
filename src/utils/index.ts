@@ -87,7 +87,9 @@ export function parseFloatsObjectsFromVariables(
   const parsedFloatObjects = numberVariables.map((variable) => {
     const identifier = Object.keys(variable.valuesByMode)[0]
     const valuePath: VariableValue = variable.valuesByMode[identifier]
-    const groupAndName = variable.name.split('/').map(cur => cur.toLowerCase().replace(' ', '-'))
+    const groupAndName = variable.name
+      .split('/')
+      .map((cur) => cur.toLowerCase().replace(' ', '-'))
     const group = groupAndName[0]
     const name = groupAndName[groupAndName.length - 1]
     if (groupAndName.includes('Input Field')) console.log(groupAndName)
@@ -114,7 +116,9 @@ export function parseStringObjectsFromVariables(
   const parsedStringObjects = stringVariables.map((variable) => {
     const identifier = Object.keys(variable.valuesByMode)[0]
     const valuePath: VariableValue = variable.valuesByMode[identifier]
-    const groupAndName = variable.name.split('/').map(cur => cur.toLowerCase().replace(' ', '-'))
+    const groupAndName = variable.name
+      .split('/')
+      .map((cur) => cur.toLowerCase().replace(' ', '-'))
     const group = groupAndName[0]
     const name = groupAndName[groupAndName.length - 1]
     return {
