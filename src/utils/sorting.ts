@@ -1,4 +1,4 @@
-import { isRgbaObject, isVariableAlias } from './typeguards'
+import { isMediaQuery, isNumericValue, isRgbaObject, isVariableAlias } from './typeguards'
 import { extractWeight } from './index'
 
 export function sortColorVariables(colorVariables: Variable[]) {
@@ -58,4 +58,30 @@ export function sortColorVariables(colorVariables: Variable[]) {
 
   const sortedColorVariables = [...primitives, ...tokens]
   return sortedColorVariables
+}
+
+export function sortNumberVariables(numberVariables: Variable[]) {
+
+  const primitives: Variable[] = []
+  const mediaQuerieTokens: Variable[] = []
+  const tokens: Variable[] = []
+
+
+  numberVariables.forEach((vari) => {
+    const identifier = Object.keys(vari.valuesByMode)[0]
+    const valuePath: VariableValue = vari.valuesByMode[identifier]
+    const groupAndName = vari.name.split('/').map(cur => cur.toLowerCase())
+
+    if (isNumericValue(valuePath)) primitives.push(vari)
+    else if (isMediaQuery(groupAndName)) mediaQuerieTokens.push(vari)
+    else tokens.push(vari)
+  })
+
+  mediaQuerieTokens.sort((a, b) => {
+    if (b.name.split('/').map(cur => cur.toLowerCase()).includes('mobile')) return 1
+    else return 0
+  })
+
+  const sortedNumberVariables = [...primitives, ...mediaQuerieTokens, ...tokens]
+  return sortedNumberVariables
 }

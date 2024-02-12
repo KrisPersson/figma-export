@@ -15,6 +15,8 @@ figma.ui.resize(500, 330)
 figma.ui.onmessage = async (msg) => {
   const { type, outputFormat } = msg
 
+  
+
   const localVariables =
     msg.type !== 'all'
       ? figma.variables.getLocalVariables(type.toUpperCase())

@@ -10,10 +10,12 @@ export type TParsedColorObject = {
 export type TParsedFloatObject = {
   group: string
   name: string
-  value: number | VariableAlias
+  values: (string | VariableAlias)[]
+  valueIdentifiers: string[]
   originalId: string
   cssKey: string
-  cssUnit: TCssUnit
+  cssUnit?: TCssUnit,
+  groupAndName: string[]
 }
 
 export type TParsedStringObject = {

@@ -9,30 +9,89 @@ import {
   isVariableAlias,
   isNumericValue,
   isStringValue,
+  isMediaQuery,
 } from './typeguards'
-import { extractWeight } from './index'
+import { extractWeight, getModeNameByModeId } from './index'
 
 export function parseCssClassesNumbers(
   parsedFloatObjects: TParsedFloatObject[],
   outputFormat: TChosenOutputFormat
 ) {
+  const mediaQueryKeyWords = ["mobile", "tablet", "desktop", "laptop"]
   let isFirstVariableAlias = true
+  let isFirstMediaQueryAlias = true
+  const localCollections = figma.variables.getLocalVariableCollections();
 
-  const cssFloatsString = parsedFloatObjects.reduce(
+  let cssFloatsString = parsedFloatObjects.reduce(
     (acc: string, cur: TParsedFloatObject) => {
-      if (isNumericValue(cur.value)) {
-        return acc + `${cur.cssKey}: ${cur.value}${cur.cssUnit || ''};\n`
-      } else if (isVariableAlias(cur.value)) {
-        const curValue = cur.value as VariableAlias
+      
+  
+      const modeValues = cur.values.map(val => {
+        if (isVariableAlias(val)) {
+          const primitiveVar = parsedFloatObjects.find((variable) => {
+            return variable.originalId === val.id
+          })
+          return primitiveVar?.cssKey
+        } else {
+          return val.toString()
+        }
+      })
+
+      const modeNames: string[] = []
+      
+      if (modeValues.length > 1) {
+        cur.valueIdentifiers.forEach(id => {
+          const modeName = getModeNameByModeId(id, localCollections)
+          modeNames.push(modeName?.replace(' ', '-').toLowerCase() as string)
+        })
+
+        const mqs: string[] = []
+        for (let i = 0; i < modeValues.length; i++) {
+          let cssKey = cur.cssKey.slice(1)
+          mqs.push(`--_mq${cssKey}-${modeNames[i]}: ${modeValues[i]}`)
+        }
+
+        console.log(mqs)
+      }
+      
+
+      if (isNumericValue(cur.values[0])) {
+        return acc + `${cur.cssKey}: ${cur.values[0]}${cur.cssUnit || ''};\n`
+      } else if (isVariableAlias(cur.values[0]) && isMediaQuery(cur.groupAndName)) {
+        const curValue = cur.values[0] as VariableAlias
         const primitiveNumber = parsedFloatObjects.find((variable) => {
           return variable.originalId === curValue.id
         })
         const primitiveCssKey = primitiveNumber?.cssKey
+        const lineBreak = isFirstMediaQueryAlias
+          ? '\n/* Media Query Tokens */\n\n'
+          : ''
+        isFirstMediaQueryAlias = false
+        const parsedKeyAndValue =
+          outputFormat === 'sass'
+            ? `${cur.cssKey}: ${primitiveCssKey?.toLowerCase()}`
+            : `${cur.cssKey}: var(${primitiveCssKey?.toLowerCase()})`
+        return acc + lineBreak + `${parsedKeyAndValue};\n`
+      } else if (isVariableAlias(cur.values[0])) {
+        const curValue = cur.values[0] as VariableAlias
+        const primitiveNumber = parsedFloatObjects.find((variable) => {
+          return variable.originalId === curValue.id
+        })
+        const primitiveCssKey = primitiveNumber?.cssKey
+        
+
+        // if (primitiveCssKey?.includes('mobile')) {
+        //   const parsedKeyAndValue =
+        //   outputFormat === 'sass'
+        //     ? `${cur.cssKey}: ${primitiveCssKey?.toLowerCase().replace('mobile', 'desktop')};`
+        //     : `${cur.cssKey}: var(${primitiveCssKey?.toLowerCase().replace('mobile', 'desktop')});`
+        //   mqOptions.push(parsedKeyAndValue)
+        // }
+
         const lineBreak = isFirstVariableAlias
-          ? '\n/* Sizing Tokens */\n\n'
+          ? '\n/* Standard Sizing Tokens */\n\n'
           : ''
         isFirstVariableAlias = false
-        // if (cur.cssKey === '--input-field-icon size') console.log('found it')
         const parsedKeyAndValue =
           outputFormat === 'sass'
             ? `${cur.cssKey}: ${primitiveCssKey?.toLowerCase()}`
@@ -44,6 +103,14 @@ export function parseCssClassesNumbers(
     },
     ' \n/* Numbers */\n\n'
   )
+  // if (mqOptions.length > 0) {
+
+  //   let mediaQueries = mqOptions.reduce((acc, cur) => {
+  //     return acc + '\t' + cur + '\n'
+  //   }, '\n@media (min-width: 800px) {\n')
+  //   mediaQueries += '}'
+  //   cssFloatsString += mediaQueries
+  // }
 
   return cssFloatsString
 }

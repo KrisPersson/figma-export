@@ -2,9 +2,9 @@ import { TChosenOutputFormat, TParsedColorObject } from '../types'
 
 import { parseColorNameAndCssKey } from './parsingCss'
 
-import { sortColorVariables } from './sorting'
+import { sortColorVariables, sortNumberVariables } from './sorting'
 
-import { isVariableAlias, isMediaQuery, isNumericValue } from './typeguards'
+import { isVariableAlias, isNumericValue } from './typeguards'
 
 export function convertPercentageToRgba(rgbObject: RGBA) {
   const { r, g, b, a } = rgbObject
@@ -80,35 +80,55 @@ export function parseColorObjectsFromVariables(
   return parsedColorObjects
 }
 
+export function extractFloatValues(variable: Variable) {
+  const identifiers = Object.keys(variable.valuesByMode)
+  console.log(identifiers)
+  const values = []
+  for (const key of identifiers) {
+    const valuePath = variable.valuesByMode[key]
+    if (isVariableAlias(valuePath)) {
+      values.push({ ...valuePath } as VariableAlias)
+    } else {
+      values.push(Number(valuePath) + ' px')
+    }
+  }
+  return values
+}
+
+export function extractModeIds(variable: Variable) {
+  const identifiers = Object.keys(variable.valuesByMode)
+  
+  return identifiers
+}
+
+export function getModeNameByModeId(modeId: string, localCollections: VariableCollection[]) {
+  const mode = localCollections.find(collection => {
+    const result = collection.modes.find(mode => mode.modeId === modeId)
+    return !!result
+  })
+  return mode?.name
+}
+
 export function parseFloatsObjectsFromVariables(
   numberVariables: Variable[],
   outputFormat: TChosenOutputFormat
 ) {
-  const parsedFloatObjects = numberVariables.map((variable) => {
-    const identifier = Object.keys(variable.valuesByMode)[0]
-    const valuePath: VariableValue = variable.valuesByMode[identifier]
+  const sortedNumberVariables = sortNumberVariables(numberVariables)
+
+  const parsedFloatObjects = sortedNumberVariables.map((variable) => {
     const groupAndName = variable.name
       .split('/')
       .map((cur) => cur.toLowerCase().replace(' ', '-'))
     const group = groupAndName[0]
     const name = groupAndName[groupAndName.length - 1]
-    const mqType = isMediaQuery(groupAndName) ? groupAndName.find(cur => cur.toLowerCase() === 'desktop' || cur.toLowerCase() === 'mobile') : ''
-    const mqParsedKey = isMediaQuery(groupAndName) ? groupAndName.filter(cur => cur !== mqType) : []
-    if (mqType) mqParsedKey.push(mqType)
     return {
       group,
       name,
-      value: isVariableAlias(valuePath)
-        ? ({ ...valuePath } as VariableAlias)
-        : Number(variable.valuesByMode[identifier]),
-      cssUnit: isNumericValue(valuePath) ? 'px' : '',
-      cssKey: isVariableAlias(valuePath) && !isMediaQuery(groupAndName)
-        ? `${outputFormat === 'sass' ? '$' : '--'}${groupAndName.join('-')}`
-        : isVariableAlias(valuePath) && isMediaQuery(groupAndName) 
-        ? `${outputFormat === 'sass' ? '$' : '--'}_mq-${mqParsedKey.join('-').toLowerCase().replace(' ', '-')}`  
-        : `${outputFormat === 'sass' ? '$' : '--'}_scale-${name.toLowerCase().replace(' ', '-')}`,
-      originalId: variable.id,
-
+      groupAndName,
+      values: extractFloatValues(variable),
+      valueIdentifiers: extractModeIds(variable),
+      cssKey: `${outputFormat === 'sass' ? '$' : '--'}${groupAndName.join('-')}`,
+      originalId: variable.id
     }
   })
   return parsedFloatObjects
