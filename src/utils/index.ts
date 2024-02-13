@@ -73,7 +73,7 @@ export function parseColorObjectsFromVariables(
           : convertPercentageToRgba(valuePath as RGBA),
         originalId: variable.id,
         cssKey,
-        weight,
+        weight
       }
     }
   )
@@ -89,7 +89,7 @@ export function extractFloatValues(variable: Variable) {
     if (isVariableAlias(valuePath)) {
       values.push({ ...valuePath } as VariableAlias)
     } else {
-      values.push(Number(valuePath) + ' px')
+      values.push(valuePath as string)
     }
   }
   return values
@@ -102,11 +102,15 @@ export function extractModeIds(variable: Variable) {
 }
 
 export function getModeNameByModeId(modeId: string, localCollections: VariableCollection[]) {
-  const mode = localCollections.find(collection => {
-    const result = collection.modes.find(mode => mode.modeId === modeId)
-    return !!result
-  })
-  return mode?.name
+
+  for (let i = 0; i < localCollections.length; i++) {
+    const modes = localCollections[i].modes
+    for (const mode of modes) {
+      if (mode.modeId === modeId) {
+        return { modeName: mode.name, isDefaultModeId: mode.modeId === localCollections[i].defaultModeId } // Returns mode name and whether or not it is the defaultMode
+      }
+    }
+  }
 }
 
 export function parseFloatsObjectsFromVariables(

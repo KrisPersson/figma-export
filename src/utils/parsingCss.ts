@@ -3,6 +3,8 @@ import {
   TParsedColorObject,
   TChosenOutputFormat,
   TParsedStringObject,
+  TDeviceBreakPoints,
+  TMediaQueriesMap
 } from '../types'
 import {
   isRgbaObject,
@@ -12,67 +14,80 @@ import {
   isMediaQuery,
 } from './typeguards'
 import { extractWeight, getModeNameByModeId } from './index'
+import { isEveryNameTheSame, getModeValues } from './helpers'
 
 export function parseCssClassesNumbers(
   parsedFloatObjects: TParsedFloatObject[],
   outputFormat: TChosenOutputFormat
 ) {
-  const mediaQueryKeyWords = ["mobile", "tablet", "desktop", "laptop"]
+  const deviceBreakPoints: TDeviceBreakPoints = {
+    mobile: "(max-width: 599px)",
+    tablet: "(min-width: 600px) and (max-width: 899px)",
+    laptop: "(min-width: 900px)",
+    desktop: "(min-width: 900px)",
+    widescreen: "(min-width: 1240px)",
+  }
+  const mediaQueryKeyWords = ["mobile", "tablet", "laptop", "desktop", "widescreen"]
   let isFirstVariableAlias = true
   let isFirstMediaQueryAlias = true
   const localCollections = figma.variables.getLocalVariableCollections();
+  console.log(localCollections)
+  const mqs: string[] = []
+  let cssMediaQueries: TMediaQueriesMap = {
+    mobile: {
+      keyValuePairs: []
+    },
+    tablet: {
+      keyValuePairs: []
+    },
+    laptop: {
+      keyValuePairs: []
+    },
+    desktop: {
+      keyValuePairs: []
+    },
+    widescreen: {
+      keyValuePairs: []
+    }
+  }
+
 
   let cssFloatsString = parsedFloatObjects.reduce(
     (acc: string, cur: TParsedFloatObject) => {
       
-  
-      const modeValues = cur.values.map(val => {
-        if (isVariableAlias(val)) {
-          const primitiveVar = parsedFloatObjects.find((variable) => {
-            return variable.originalId === val.id
-          })
-          return primitiveVar?.cssKey
-        } else {
-          return val.toString()
-        }
-      })
-
+      const modeValues = getModeValues(cur.values, parsedFloatObjects)
+      const isEveryModeValuesTheSame = isEveryNameTheSame(modeValues)
       const modeNames: string[] = []
-      
-      if (modeValues.length > 1) {
+      let defaultModeValue = ''
+
+      if (modeValues.length > 1 && !isEveryModeValuesTheSame) {
+
         cur.valueIdentifiers.forEach(id => {
-          const modeName = getModeNameByModeId(id, localCollections)
-          modeNames.push(modeName?.replace(' ', '-').toLowerCase() as string)
+          const modeNameAndIsDefaultMode = getModeNameByModeId(id, localCollections)
+          const modeName = modeNameAndIsDefaultMode?.modeName as string
+          if (modeNameAndIsDefaultMode?.isDefaultModeId) defaultModeValue = modeName.replace(' ', '-').toLowerCase() as string
+          modeNames.push(modeName.replace(' ', '-').toLowerCase() as string)
         })
 
-        const mqs: string[] = []
         for (let i = 0; i < modeValues.length; i++) {
           let cssKey = cur.cssKey.slice(1)
-          mqs.push(`--_mq${cssKey}-${modeNames[i]}: ${modeValues[i]}`)
+          const mqKey = `--_mq${cssKey}-${modeNames[i]}`
+          const mqValue = `${modeValues[i]}` 
+          mqs.push(`${mqKey}: ${isNumericValue(mqValue) ? `${mqValue}px` : `var(${mqValue})`}`)
+          if (mediaQueryKeyWords.includes(modeNames[i]) && cssMediaQueries.hasOwnProperty(modeNames[i])) {
+            cssMediaQueries[modeNames[i]].keyValuePairs.push(`${cur.cssKey}: ${mqKey}`)
+            if (modeNames[i] === defaultModeValue) { // This is where the default mode-value is assigned as default value for the CSS-Key for the current variable. This is the value that is being overwritten later by media queries.
+              defaultModeValue = `${mqKey}`
+            }
+          }
         }
 
-        console.log(mqs)
       }
-      
-
       if (isNumericValue(cur.values[0])) {
-        return acc + `${cur.cssKey}: ${cur.values[0]}${cur.cssUnit || ''};\n`
-      } else if (isVariableAlias(cur.values[0]) && isMediaQuery(cur.groupAndName)) {
-        const curValue = cur.values[0] as VariableAlias
-        const primitiveNumber = parsedFloatObjects.find((variable) => {
-          return variable.originalId === curValue.id
-        })
-        const primitiveCssKey = primitiveNumber?.cssKey
-        const lineBreak = isFirstMediaQueryAlias
-          ? '\n/* Media Query Tokens */\n\n'
-          : ''
-        isFirstMediaQueryAlias = false
-        const parsedKeyAndValue =
-          outputFormat === 'sass'
-            ? `${cur.cssKey}: ${primitiveCssKey?.toLowerCase()}`
-            : `${cur.cssKey}: var(${primitiveCssKey?.toLowerCase()})`
-        return acc + lineBreak + `${parsedKeyAndValue};\n`
+        const curValue = defaultModeValue || cur.values[0] 
+        return acc + `${cur.cssKey}: ${curValue}px;\n`
       } else if (isVariableAlias(cur.values[0])) {
+
         const curValue = cur.values[0] as VariableAlias
         const primitiveNumber = parsedFloatObjects.find((variable) => {
           return variable.originalId === curValue.id
@@ -94,8 +109,8 @@ export function parseCssClassesNumbers(
         isFirstVariableAlias = false
         const parsedKeyAndValue =
           outputFormat === 'sass'
-            ? `${cur.cssKey}: ${primitiveCssKey?.toLowerCase()}`
-            : `${cur.cssKey}: var(${primitiveCssKey?.toLowerCase()})`
+            ? `${cur.cssKey}: ${defaultModeValue || primitiveCssKey?.toLowerCase()}`
+            : `${cur.cssKey}: var(${defaultModeValue || primitiveCssKey?.toLowerCase()})`
         return acc + lineBreak + `${parsedKeyAndValue};\n`
       } else {
         return acc + `\n`
@@ -103,6 +118,25 @@ export function parseCssClassesNumbers(
     },
     ' \n/* Numbers */\n\n'
   )
+
+  // else if (isVariableAlias(cur.values[0]) && isMediaQuery(cur.groupAndName)) {
+  //   const curValue = cur.values[0] as VariableAlias
+  //   const primitiveNumber = parsedFloatObjects.find((variable) => {
+  //     return variable.originalId === curValue.id
+  //   })
+  //   const primitiveCssKey = primitiveNumber?.cssKey
+  //   const lineBreak = isFirstMediaQueryAlias
+  //     ? '\n/* Media Query Tokens */\n\n'
+  //     : ''
+  //   isFirstMediaQueryAlias = false
+  //   const parsedKeyAndValue =
+  //     outputFormat === 'sass'
+  //       ? `${cur.cssKey}: ${primitiveCssKey?.toLowerCase()}`
+  //       : `${cur.cssKey}: var(${primitiveCssKey?.toLowerCase()})`
+  //   return acc + lineBreak + `${parsedKeyAndValue};\n`
+
+
+
   // if (mqOptions.length > 0) {
 
   //   let mediaQueries = mqOptions.reduce((acc, cur) => {

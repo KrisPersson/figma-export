@@ -40,7 +40,6 @@ figma.ui.onmessage = async (msg) => {
       : []
 
   let output = ''
-  console.log(parseStringObjectsFromVariables(stringVariables, outputFormat))
 
   if (colorVariables.length > 0)
     output += parseCssClassesColor(

@@ -26,6 +26,20 @@ export type TParsedStringObject = {
   cssKey: string
 }
 
+export type TDeviceBreakPoints = {
+  mobile?: string;
+  tablet?: string; 
+  laptop?: string;
+  desktop?: string;
+  widescreen?: string;
+}
+
+export type TMediaQueriesMap = {
+  [device: string]: {
+    keyValuePairs: string[];
+  }
+}
+
 export type TCssUnit = 'px' | 'rem' | '%' | 'em' | string
 
 export type TChosenOutputFormat = 'css' | 'sass'
