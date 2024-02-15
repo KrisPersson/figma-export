@@ -4,7 +4,8 @@ import {
   TChosenOutputFormat,
   TParsedStringObject,
   TDeviceBreakPoints,
-  TMediaQueriesMap
+  TMediaQueriesMap,
+  TmqEvaluationResult
 } from '../types'
 import {
   isRgbaObject,
@@ -14,7 +15,7 @@ import {
   isMediaQuery,
 } from './typeguards'
 import { extractWeight, getModeNameByModeId } from './index'
-import { isEveryNameTheSame, getModeValues } from './helpers'
+import { isEveryNameTheSame, getModeValues, evaluatePresentViewports, parseMediaQueries } from './helpers'
 
 export function parseCssClassesNumbers(
   parsedFloatObjects: TParsedFloatObject[],
@@ -28,11 +29,16 @@ export function parseCssClassesNumbers(
     widescreen: "(min-width: 1240px)",
   }
   const mediaQueryKeyWords = ["mobile", "tablet", "laptop", "desktop", "widescreen"]
-  let isFirstVariableAlias = true
-  let isFirstMediaQueryAlias = true
+  
   const localCollections = figma.variables.getLocalVariableCollections();
   console.log(localCollections)
-  const mqs: string[] = []
+  
+
+  // Initializing arrays to hold KeyValue-pairs separate by type.
+
+  const numbers: string[] = []
+  const mqTokens: string[] = []
+  const standardTokens: string[] = []
   let cssMediaQueries: TMediaQueriesMap = {
     mobile: {
       keyValuePairs: []
@@ -51,16 +57,15 @@ export function parseCssClassesNumbers(
     }
   }
 
-
-  let cssFloatsString = parsedFloatObjects.reduce(
-    (acc: string, cur: TParsedFloatObject) => {
+   parsedFloatObjects.forEach(
+    (cur: TParsedFloatObject) => {
       
       const modeValues = getModeValues(cur.values, parsedFloatObjects)
-      const isEveryModeValuesTheSame = isEveryNameTheSame(modeValues)
+      const isEveryModeValueTheSame = isEveryNameTheSame(modeValues)
       const modeNames: string[] = []
       let defaultModeValue = ''
 
-      if (modeValues.length > 1 && !isEveryModeValuesTheSame) {
+      if (modeValues.length > 1 && !isEveryModeValueTheSame) {
 
         cur.valueIdentifiers.forEach(id => {
           const modeNameAndIsDefaultMode = getModeNameByModeId(id, localCollections)
@@ -72,10 +77,10 @@ export function parseCssClassesNumbers(
         for (let i = 0; i < modeValues.length; i++) {
           let cssKey = cur.cssKey.slice(1)
           const mqKey = `--_mq${cssKey}-${modeNames[i]}`
-          const mqValue = `${modeValues[i]}` 
-          mqs.push(`${mqKey}: ${isNumericValue(mqValue) ? `${mqValue}px` : `var(${mqValue})`}`)
+          const mqValue = modeValues[i] 
+          mqTokens.push(`${mqKey}: ${Number(mqValue) ? `${mqValue}px` : `var(${mqValue})`}`)
           if (mediaQueryKeyWords.includes(modeNames[i]) && cssMediaQueries.hasOwnProperty(modeNames[i])) {
-            cssMediaQueries[modeNames[i]].keyValuePairs.push(`${cur.cssKey}: ${mqKey}`)
+            cssMediaQueries[modeNames[i]].keyValuePairs.push(`${cur.cssKey}: var(${mqKey})`)
             if (modeNames[i] === defaultModeValue) { // This is where the default mode-value is assigned as default value for the CSS-Key for the current variable. This is the value that is being overwritten later by media queries.
               defaultModeValue = `${mqKey}`
             }
@@ -84,8 +89,8 @@ export function parseCssClassesNumbers(
 
       }
       if (isNumericValue(cur.values[0])) {
-        const curValue = defaultModeValue || cur.values[0] 
-        return acc + `${cur.cssKey}: ${curValue}px;\n`
+        const curValue = cur.values[0] 
+        numbers.push(`${cur.cssKey}: ${curValue}px`)
       } else if (isVariableAlias(cur.values[0])) {
 
         const curValue = cur.values[0] as VariableAlias
@@ -94,59 +99,42 @@ export function parseCssClassesNumbers(
         })
         const primitiveCssKey = primitiveNumber?.cssKey
         
-
-        // if (primitiveCssKey?.includes('mobile')) {
-        //   const parsedKeyAndValue =
-        //   outputFormat === 'sass'
-        //     ? `${cur.cssKey}: ${primitiveCssKey?.toLowerCase().replace('mobile', 'desktop')};`
-        //     : `${cur.cssKey}: var(${primitiveCssKey?.toLowerCase().replace('mobile', 'desktop')});`
-        //   mqOptions.push(parsedKeyAndValue)
-        // }
-
-        const lineBreak = isFirstVariableAlias
-          ? '\n/* Standard Sizing Tokens */\n\n'
-          : ''
-        isFirstVariableAlias = false
         const parsedKeyAndValue =
           outputFormat === 'sass'
             ? `${cur.cssKey}: ${defaultModeValue || primitiveCssKey?.toLowerCase()}`
             : `${cur.cssKey}: var(${defaultModeValue || primitiveCssKey?.toLowerCase()})`
-        return acc + lineBreak + `${parsedKeyAndValue};\n`
+        standardTokens.push(`${parsedKeyAndValue}`)
       } else {
-        return acc + `\n`
+        return 'ParsedFloatObject fell thru - found no case while parsing'
       }
-    },
-    ' \n/* Numbers */\n\n'
+    }
   )
 
-  // else if (isVariableAlias(cur.values[0]) && isMediaQuery(cur.groupAndName)) {
-  //   const curValue = cur.values[0] as VariableAlias
-  //   const primitiveNumber = parsedFloatObjects.find((variable) => {
-  //     return variable.originalId === curValue.id
-  //   })
-  //   const primitiveCssKey = primitiveNumber?.cssKey
-  //   const lineBreak = isFirstMediaQueryAlias
-  //     ? '\n/* Media Query Tokens */\n\n'
-  //     : ''
-  //   isFirstMediaQueryAlias = false
-  //   const parsedKeyAndValue =
-  //     outputFormat === 'sass'
-  //       ? `${cur.cssKey}: ${primitiveCssKey?.toLowerCase()}`
-  //       : `${cur.cssKey}: var(${primitiveCssKey?.toLowerCase()})`
-  //   return acc + lineBreak + `${parsedKeyAndValue};\n`
+  // let cssString = cssFloatsStringArr.reduce((acc: string, cur: string) => {
+  //   return acc + cur + ';\n'
+  // },'')
 
+  const parsedNumbersSection = numbers.length > 0 
+    ? numbers.reduce((acc: string, cur: string) => {
+      return acc + cur + ';\n'
+    }, '/* Numbers */\n\n')
+    : '';
+  
+  const parsedMqTokens = mqTokens.length > 0 
+  ? mqTokens.reduce((acc: string, cur: string) => {
+    return acc + cur + ';\n'
+  }, '\n/* Media Query Tokens */\n\n')
+  : '';
 
+  const parsedStandardTokens = standardTokens.length > 0 
+  ? standardTokens.reduce((acc: string, cur: string) => {
+    return acc + cur + ';\n'
+  }, '\n/* Standard Tokens */\n\n')
+  : '';
 
-  // if (mqOptions.length > 0) {
+  const parsedMediaQueries = '\n/* Media Queries */\n' + parseMediaQueries(cssMediaQueries, evaluatePresentViewports(cssMediaQueries)).reduce((acc, cur) => { return acc + '\n' + cur}, '')
 
-  //   let mediaQueries = mqOptions.reduce((acc, cur) => {
-  //     return acc + '\t' + cur + '\n'
-  //   }, '\n@media (min-width: 800px) {\n')
-  //   mediaQueries += '}'
-  //   cssFloatsString += mediaQueries
-  // }
-
-  return cssFloatsString
+  return parsedNumbersSection + parsedMqTokens + parsedStandardTokens + parsedMediaQueries
 }
 
 export function parseCssClassesColor(

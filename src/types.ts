@@ -40,6 +40,10 @@ export type TMediaQueriesMap = {
   }
 }
 
+export type TmqEvaluationResult = {
+  [device: string]: string;
+}
+
 export type TCssUnit = 'px' | 'rem' | '%' | 'em' | string
 
 export type TChosenOutputFormat = 'css' | 'sass'

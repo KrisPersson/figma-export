@@ -11,7 +11,7 @@ export function isVariableAlias(obj: any): obj is VariableAlias {
   return obj.hasOwnProperty('id') && obj.type === 'VARIABLE_ALIAS'
 }
 
-export function isNumericValue(obj: any): obj is Number {
+export function isNumericValue(obj: any): obj is number {
   return typeof obj === 'number'
 }
 
