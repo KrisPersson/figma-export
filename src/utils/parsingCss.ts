@@ -70,7 +70,7 @@ export function parseCssClassesNumbers(
         cur.valueIdentifiers.forEach(id => {
           const modeNameAndIsDefaultMode = getModeNameByModeId(id, localCollections)
           const modeName = modeNameAndIsDefaultMode?.modeName as string
-          if (modeNameAndIsDefaultMode?.isDefaultModeId) defaultModeValue = modeName.replace(' ', '-').toLowerCase() as string
+          if (modeName.toLowerCase() === 'mobile') defaultModeValue = modeName.replace(' ', '-').toLowerCase() as string
           modeNames.push(modeName.replace(' ', '-').toLowerCase() as string)
         })
 
@@ -132,7 +132,7 @@ export function parseCssClassesNumbers(
   }, '\n/* Standard Tokens */\n\n')
   : '';
 
-  const parsedMediaQueries = '\n/* Media Queries */\n' + parseMediaQueries(cssMediaQueries, evaluatePresentViewports(cssMediaQueries)).reduce((acc, cur) => { return acc + '\n' + cur}, '')
+  const parsedMediaQueries = '\n/* Media Queries */\n' + parseMediaQueries(cssMediaQueries, evaluatePresentViewports(cssMediaQueries)).reduce((acc, cur, i) => { return i === 0 ? acc : acc + '\n' + cur}, '')
 
   return parsedNumbersSection + parsedMqTokens + parsedStandardTokens + parsedMediaQueries
 }
