@@ -85,3 +85,27 @@ export function sortNumberVariables(numberVariables: Variable[]) {
   const sortedNumberVariables = [...primitives, ...mediaQuerieTokens, ...tokens]
   return sortedNumberVariables
 }
+
+function isStandardNumberToken(string: string) {
+  const arr = string.split('-')
+  if (arr.includes('_mq') && arr.includes('mobile)')) {
+    return true
+  } else {
+    return false
+  }
+}
+
+export function separateNumberStandardTokensFromComponentTokens(standardTokens: string[]) {
+  const standards: string[] = []
+  const components: string[] = []
+
+  standardTokens.forEach(token => {
+    if (isStandardNumberToken(token)) {
+      standards.push(token)
+    } else {
+      components.push(token)
+    }
+  })
+
+  return { standardTokens: standards, componentTokens: components }
+}

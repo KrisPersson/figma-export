@@ -16,6 +16,7 @@ import {
 } from './typeguards'
 import { extractWeight, getModeNameByModeId } from './index'
 import { isEveryNameTheSame, getModeValues, evaluatePresentViewports, parseMediaQueries } from './helpers'
+import { separateNumberStandardTokensFromComponentTokens } from './sorting'
 
 export function parseCssClassesNumbers(
   parsedFloatObjects: TParsedFloatObject[],
@@ -31,14 +32,13 @@ export function parseCssClassesNumbers(
   const mediaQueryKeyWords = ["mobile", "tablet", "laptop", "desktop", "widescreen"]
   
   const localCollections = figma.variables.getLocalVariableCollections();
-  console.log(localCollections)
   
 
   // Initializing arrays to hold KeyValue-pairs separate by type.
 
   const numbers: string[] = []
   const mqTokens: string[] = []
-  const standardTokens: string[] = []
+  const standardAndComponentTokens: string[] = []
   let cssMediaQueries: TMediaQueriesMap = {
     mobile: {
       keyValuePairs: []
@@ -103,12 +103,14 @@ export function parseCssClassesNumbers(
           outputFormat === 'sass'
             ? `${cur.cssKey}: ${defaultModeValue || primitiveCssKey?.toLowerCase()}`
             : `${cur.cssKey}: var(${defaultModeValue || primitiveCssKey?.toLowerCase()})`
-        standardTokens.push(`${parsedKeyAndValue}`)
+        standardAndComponentTokens.push(`${parsedKeyAndValue}`)
       } else {
         return 'ParsedFloatObject fell thru - found no case while parsing'
       }
     }
   )
+
+  const { standardTokens, componentTokens } = separateNumberStandardTokensFromComponentTokens(standardAndComponentTokens)
 
   // let cssString = cssFloatsStringArr.reduce((acc: string, cur: string) => {
   //   return acc + cur + ';\n'
@@ -132,9 +134,15 @@ export function parseCssClassesNumbers(
   }, '\n/* Standard Tokens */\n\n')
   : '';
 
+  const parsedComponentTokens = componentTokens.length > 0 
+  ? componentTokens.reduce((acc: string, cur: string) => {
+    return acc + cur + ';\n'
+  }, '\n/* Component Tokens */\n\n')
+  : '';
+
   const parsedMediaQueries = '\n/* Media Queries */\n' + parseMediaQueries(cssMediaQueries, evaluatePresentViewports(cssMediaQueries)).reduce((acc, cur, i) => { return i === 0 ? acc : acc + '\n' + cur}, '')
 
-  return parsedNumbersSection + parsedMqTokens + parsedStandardTokens + parsedMediaQueries
+  return parsedNumbersSection + parsedMqTokens + parsedStandardTokens + parsedComponentTokens + parsedMediaQueries
 }
 
 export function parseCssClassesColor(

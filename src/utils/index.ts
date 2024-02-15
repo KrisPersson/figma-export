@@ -82,7 +82,6 @@ export function parseColorObjectsFromVariables(
 
 export function extractFloatValues(variable: Variable) {
   const identifiers = Object.keys(variable.valuesByMode)
-  console.log(identifiers)
   const values = []
   for (const key of identifiers) {
     const valuePath = variable.valuesByMode[key]
