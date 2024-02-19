@@ -58,6 +58,14 @@ export function evaluatePresentViewports(cssMediaQueries: TMediaQueriesMap) {
     return result
 }
 
+export function removeDoubles(stringArr: string[]) {
+    const newArr: string[] = []
+    stringArr.forEach(str => {
+        if (!newArr.includes(str)) newArr.push(str)
+    })
+    return newArr
+}
+
 export function parseMediaQueries(cssMediaQueries: TMediaQueriesMap, evaluatedMQs: TmqEvaluationResult) {
 
     const evMqKeys = Object.keys(evaluatedMQs)
@@ -66,4 +74,23 @@ export function parseMediaQueries(cssMediaQueries: TMediaQueriesMap, evaluatedMQ
         return `${evaluatedMQs[mqKey]} {\n${cssMediaQueries[mqKey].keyValuePairs.reduce((acc, cur) => { return acc + '\t' + cur + ';\n'}, '')}};\n`
     })
     return mappedKeys
+}
+
+export function areColorsTheSame(colorOne: VariableAlias | RGBA, colorTwo: VariableAlias | RGBA) {
+    const colorOneIsVariableAlias = isVariableAlias(colorOne)
+    const colorTwoIsVariableAlias = isVariableAlias(colorTwo)
+  
+    if (colorOneIsVariableAlias !== colorTwoIsVariableAlias) return false
+    if (!colorOneIsVariableAlias && !colorTwoIsVariableAlias) {
+      if (colorOne.r !== colorTwo.r) return false
+      if (colorOne.g !== colorTwo.g) return false
+      if (colorOne.b !== colorTwo.b) return false
+      if (colorOne.a !== colorTwo.a) return false
+    } else {
+      const colorOneAlias = colorOne as VariableAlias
+      const colorTwoAlias = colorTwo as VariableAlias
+  
+      if (colorOneAlias.id !== colorTwoAlias.id) return false
+    }
+    return true
 }

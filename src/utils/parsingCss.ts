@@ -15,7 +15,7 @@ import {
   isMediaQuery,
 } from './typeguards'
 import { extractWeight, getModeNameByModeId } from './index'
-import { isEveryNameTheSame, getModeValues, evaluatePresentViewports, parseMediaQueries } from './helpers'
+import { isEveryNameTheSame, getModeValues, evaluatePresentViewports, parseMediaQueries, areColorsTheSame, removeDoubles } from './helpers'
 import { separateNumberStandardTokensFromComponentTokens } from './sorting'
 
 export function parseCssClassesNumbers(
@@ -150,18 +150,41 @@ export function parseCssClassesColor(
   outputFormat: TChosenOutputFormat
 ) {
   let isFirstVariableAlias = true
+  const usedCssKeysAsValues: string[] = []
+  const parsedPalette: string[] = []
+  const parsedGlobalVars: string[] = []
+  const darkModeKeyValuePairs: string[] = []
+  
 
-  const cssColorString: string = parsedColorObjects.reduce(
-    (acc: string, cur: TParsedColorObject) => {
-      if (isRgbaObject(cur.value)) {
-        const { r, g, b, a } = cur.value
-        return acc + cur.cssKey + `: rgba(${r}, ${g}, ${b}, ${a});\n`
-      } else if (isVariableAlias(cur.value)) {
-        const curValue = cur.value as VariableAlias
+  parsedColorObjects.forEach(
+    (cur: TParsedColorObject) => {
+      let darkModeValue = ''
+      if (cur.values.length > 1 && !areColorsTheSame(cur.values[0], cur.values[1])) {
+        if (isRgbaObject(cur.values[1])) {
+          darkModeValue = `rgba(${cur.values[1].r}, ${cur.values[1].g}, ${cur.values[1].b}, ${cur.values[1].a})`
+        } else {
+          const curValue = cur.values[1] as VariableAlias
+          const primitiveColor = parsedColorObjects.find((variable) => {
+            return variable.originalId === curValue.id
+          })
+          const cssKey = primitiveColor?.cssKey as string
+          usedCssKeysAsValues.push(cssKey)
+          darkModeValue = `var(${cssKey})`
+        }
+        darkModeKeyValuePairs.push(`${cur.cssKey}${cur.weight ? '-' + cur.weight : ''}: ${darkModeValue}`)
+      }
+      if (isRgbaObject(cur.values[0])) {
+        const { r, g, b, a } = cur.values[0]
+
+        parsedPalette.push(cur.cssKey + `: rgba(${r}, ${g}, ${b}, ${a});\n`) 
+      } else if (isVariableAlias(cur.values[0])) {
+        const curValue = cur.values[0] as VariableAlias
         const primitiveColor = parsedColorObjects.find((variable) => {
           return variable.originalId === curValue.id
         })
-        const primitiveCssKey = primitiveColor?.cssKey
+        const primitiveCssKey = primitiveColor?.cssKey as string
+        usedCssKeysAsValues.push(primitiveCssKey)
+
         const lineBreak = isFirstVariableAlias
           ? '\n/* Global variables */\n\n'
           : ''
@@ -170,13 +193,29 @@ export function parseCssClassesColor(
           outputFormat === 'sass'
             ? `$c-${cur.name.replace(' ', '-')}${cur.weight ? '-' + cur.weight : ''}: ${primitiveCssKey?.toLowerCase()}`
             : `--c-${cur.name.replace(' ', '-')}${cur.weight ? '-' + cur.weight : ''}: var(${primitiveCssKey?.toLowerCase()})`
-        return acc + lineBreak + `${parsedKeyAndValue};\n`
-      } else return acc + `\n`
+        parsedGlobalVars.push(`${parsedKeyAndValue};\n`)
+      }
     },
     '/* Palette */\n\n'
   )
 
-  return cssColorString
+  const usedKeysNoDoubles = removeDoubles(usedCssKeysAsValues)
+  const filteredPalette = parsedPalette.filter((baseColorKeyValue: string) => {
+    return usedKeysNoDoubles.includes(baseColorKeyValue.split(':')[0])
+  })
+
+  const paletteString = filteredPalette.reduce((acc: string, cur: string) => {
+    return acc + cur 
+  }, '\n/* Palette */\n\n')
+
+  const globalVarString = parsedGlobalVars.reduce((acc: string, cur: string) => {
+    return acc + cur 
+  }, '\n/* Global variables */\n\n')
+
+  const darkModeQuery = darkModeKeyValuePairs.length > 0 ? darkModeKeyValuePairs.reduce((acc: string, cur: string) => {
+    return acc + '\n' + '\t' + cur + ';'
+  }, '\n\n@media (prefers-color-scheme: dark) {') + '\n}' : ''
+  return paletteString + globalVarString + darkModeQuery
 }
 
 export function parseCssClassesStrings(

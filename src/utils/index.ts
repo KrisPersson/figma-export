@@ -55,22 +55,19 @@ export function parseColorObjectsFromVariables(
 
   const parsedColorObjects: TParsedColorObject[] = sortedColorVariables.map(
     (variable, i: Number) => {
-      const identifier = Object.keys(variable.valuesByMode)[0]
-      const valuePath: VariableValue = variable.valuesByMode[identifier]
+      const identifiers = Object.keys(variable.valuesByMode)
       const groupAndColorName: string[] = variable.name.split('/')
       const { cssKey, name, weight } = parseColorNameAndCssKey(
         variable,
         outputFormat
       )
+
+      const valuesByMode: (VariableAlias | RGBA)[] = extractColorValues(variable)
+
       return {
         group: groupAndColorName[0].toLowerCase(),
         name: name.toLowerCase(),
-        value: isVariableAlias(valuePath)
-          ? ({
-              id: valuePath.id,
-              type: valuePath.type,
-            } as VariableAlias)
-          : convertPercentageToRgba(valuePath as RGBA),
+        values: [...valuesByMode],
         originalId: variable.id,
         cssKey,
         weight
@@ -91,6 +88,21 @@ export function extractFloatValues(variable: Variable) {
       values.push(valuePath as string)
     }
   }
+  return values
+}
+
+export function extractColorValues(variable: Variable) {
+  const identifiers = Object.keys(variable.valuesByMode)
+  const values: (VariableAlias | RGBA)[] = []
+  for (const key of identifiers) {
+    const valuePath = variable.valuesByMode[key]
+    if (isVariableAlias(valuePath)) {
+      values.push({ ...valuePath } as VariableAlias)
+    } else {
+      values.push(convertPercentageToRgba(valuePath as RGBA))
+    }
+  }
+
   return values
 }
 
