@@ -11,9 +11,9 @@ import {
 } from './utils/parsingCss'
 
 figma.showUI(__html__)
-figma.ui.resize(500, 330)
+figma.ui.resize(500, 370)
 figma.ui.onmessage = async (msg) => {
-  const { type, outputFormat, ignoreUnusedPrims } = msg
+  const { type, outputFormat, ignoreUnusedPrims, createMediaQueries } = msg
 
   const localVariables =
     msg.type !== 'all'
@@ -42,12 +42,12 @@ figma.ui.onmessage = async (msg) => {
   if (colorVariables.length > 0)
     output += parseCssClassesColor(
       parseColorObjectsFromVariables(colorVariables, outputFormat),
-      outputFormat, ignoreUnusedPrims
+      outputFormat, ignoreUnusedPrims, createMediaQueries
     )
   if (numberVariables.length > 0)
     output += parseCssClassesNumbers(
       parseFloatsObjectsFromVariables(numberVariables, outputFormat),
-      outputFormat, ignoreUnusedPrims
+      outputFormat, ignoreUnusedPrims, createMediaQueries
     )
   if (stringVariables.length > 0)
     output += parseCssClassesStrings(

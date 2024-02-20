@@ -21,7 +21,8 @@ import { separateNumberStandardTokensFromComponentTokens } from './sorting'
 export function parseCssClassesNumbers(
   parsedFloatObjects: TParsedFloatObject[],
   outputFormat: TChosenOutputFormat,
-  ignoreUnusedPrims: boolean
+  ignoreUnusedPrims: boolean,
+  createMediaQueries: boolean
 ) {
   const deviceBreakPoints: TDeviceBreakPoints = {
     mobile: "(max-width: 599px)",
@@ -148,14 +149,16 @@ export function parseCssClassesNumbers(
   }, '\n/* Component Tokens */\n\n')
   : '';
 
-  const parsedMediaQueries = '\n/* Media Queries */\n' + parseMediaQueries(cssMediaQueries, evaluatePresentViewports(cssMediaQueries)).reduce((acc, cur, i) => { return i === 0 ? acc : acc + '\n' + cur}, '')
+  const parsedMediaQueries = createMediaQueries ? '\n/* Media Queries */\n' + parseMediaQueries(cssMediaQueries, evaluatePresentViewports(cssMediaQueries)).reduce((acc, cur, i) => { return i === 0 ? acc : acc + '\n' + cur}, '') : ''
   return parsedNumbersSection + parsedMqTokens + parsedStandardTokens + parsedComponentTokens + parsedMediaQueries
 }
 
 export function parseCssClassesColor(
   parsedColorObjects: TParsedColorObject[],
   outputFormat: TChosenOutputFormat,
-  ignoreUnusedPrims: boolean
+  ignoreUnusedPrims: boolean,
+  createMediaQueries: boolean
+
 ) {
   let isFirstVariableAlias = true
   const usedCssKeysAsValues: string[] = []
@@ -220,9 +223,10 @@ export function parseCssClassesColor(
     return acc + cur 
   }, '\n/* Global variables */\n\n')
 
-  const darkModeQuery = darkModeKeyValuePairs.length > 0 ? darkModeKeyValuePairs.reduce((acc: string, cur: string) => {
+  const darkModeQuery = darkModeKeyValuePairs.length > 0 && createMediaQueries ? darkModeKeyValuePairs.reduce((acc: string, cur: string) => {
     return acc + '\n' + '\t' + cur + ';'
   }, '\n\n@media (prefers-color-scheme: dark) {') + '\n}\n\n' : ''
+
   return paletteString + globalVarString + darkModeQuery
 }
 

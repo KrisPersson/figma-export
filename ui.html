@@ -19,6 +19,10 @@
     flex-flow: row nowrap;
     justify-content: space-between;
   }
+  .options-form {
+    display: flex;
+    flex-flow: column nowrap;
+  }
   .output-form__p {
     margin: 0.8rem 0;
   }
@@ -125,6 +129,16 @@
       />
       Ignore Unused Primitives</label
     >
+    <label class="options-form__option" for="option-create-media-queries"
+      ><input
+        type="checkbox"
+        value="true"
+        id="option-create-media-queries"
+        name="option-create-media-queries"
+        checked
+      />
+      Create Media Queries</label
+    >
 
   </section>
 </section>
@@ -141,14 +155,18 @@
     const ignoreUnusedPrims = document.querySelector(
       'input[id="option-ignore-unused-primitives"]:checked'
     )?.value
+    const createMediaQueries = document.querySelector(
+      'input[id="option-create-media-queries"]:checked'
+    )?.value
 
     parent.postMessage(
       {
         pluginMessage: {
           type: selectedVariablesType,
           outputFormat: selectedOutputFormat,
-          ignoreUnusedPrims: ignoreUnusedPrims ? true : false
-        },
+          ignoreUnusedPrims: ignoreUnusedPrims ? true : false,
+          createMediaQueries: createMediaQueries ? true : false
+        }
       },
       '*'
     )
