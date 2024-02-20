@@ -15,12 +15,6 @@ figma.ui.resize(500, 330)
 figma.ui.onmessage = async (msg) => {
   const { type, outputFormat, ignoreUnusedPrims } = msg
 
-  if (ignoreUnusedPrims) {
-    console.log('Checked!')
-  } else {
-    console.log('Not Checked!')
-  }
-
   const localVariables =
     msg.type !== 'all'
       ? figma.variables.getLocalVariables(type.toUpperCase())
@@ -53,7 +47,7 @@ figma.ui.onmessage = async (msg) => {
   if (numberVariables.length > 0)
     output += parseCssClassesNumbers(
       parseFloatsObjectsFromVariables(numberVariables, outputFormat),
-      outputFormat
+      outputFormat, ignoreUnusedPrims
     )
   if (stringVariables.length > 0)
     output += parseCssClassesStrings(

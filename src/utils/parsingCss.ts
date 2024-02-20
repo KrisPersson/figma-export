@@ -20,7 +20,8 @@ import { separateNumberStandardTokensFromComponentTokens } from './sorting'
 
 export function parseCssClassesNumbers(
   parsedFloatObjects: TParsedFloatObject[],
-  outputFormat: TChosenOutputFormat
+  outputFormat: TChosenOutputFormat,
+  ignoreUnusedPrims: boolean
 ) {
   const deviceBreakPoints: TDeviceBreakPoints = {
     mobile: "(max-width: 599px)",
@@ -37,6 +38,7 @@ export function parseCssClassesNumbers(
   // Initializing arrays to hold KeyValue-pairs separate by type.
 
   const numbers: string[] = []
+  const usedPrims: string[] = []
   const mqTokens: string[] = []
   const standardAndComponentTokens: string[] = []
   let cssMediaQueries: TMediaQueriesMap = {
@@ -79,6 +81,7 @@ export function parseCssClassesNumbers(
           const mqKey = `--_mq${cssKey}-${modeNames[i]}`
           const mqValue = modeValues[i] 
           mqTokens.push(`${mqKey}: ${Number(mqValue) ? `${mqValue}px` : `var(${mqValue})`}`)
+          if (mqValue?.split('-').includes('scale')) usedPrims.push(mqValue)
           if (mediaQueryKeyWords.includes(modeNames[i]) && cssMediaQueries.hasOwnProperty(modeNames[i])) {
             cssMediaQueries[modeNames[i]].keyValuePairs.push(`${cur.cssKey}: var(${mqKey})`)
             if (modeNames[i] === defaultModeValue) { // This is where the default mode-value is assigned as default value for the CSS-Key for the current variable. This is the value that is being overwritten later by media queries.
@@ -98,6 +101,7 @@ export function parseCssClassesNumbers(
           return variable.originalId === curValue.id
         })
         const primitiveCssKey = primitiveNumber?.cssKey
+        if (primitiveCssKey?.split('-').includes('scale')) usedPrims.push(primitiveCssKey)
         
         const parsedKeyAndValue =
           outputFormat === 'sass'
@@ -111,13 +115,17 @@ export function parseCssClassesNumbers(
   )
 
   const { standardTokens, componentTokens } = separateNumberStandardTokensFromComponentTokens(standardAndComponentTokens)
+  const usedPrimsNoDoubles = removeDoubles(usedPrims)
+  const filteredNumbers = ignoreUnusedPrims ? numbers.filter(num => {
+    return usedPrimsNoDoubles.includes(num.split(':')[0])
+  }) : numbers
 
   // let cssString = cssFloatsStringArr.reduce((acc: string, cur: string) => {
   //   return acc + cur + ';\n'
   // },'')
 
-  const parsedNumbersSection = numbers.length > 0 
-    ? numbers.reduce((acc: string, cur: string) => {
+  const parsedNumbersSection = filteredNumbers.length > 0 
+    ? filteredNumbers.reduce((acc: string, cur: string) => {
       return acc + cur + ';\n'
     }, '/* Numbers */\n\n')
     : '';
@@ -141,7 +149,6 @@ export function parseCssClassesNumbers(
   : '';
 
   const parsedMediaQueries = '\n/* Media Queries */\n' + parseMediaQueries(cssMediaQueries, evaluatePresentViewports(cssMediaQueries)).reduce((acc, cur, i) => { return i === 0 ? acc : acc + '\n' + cur}, '')
-
   return parsedNumbersSection + parsedMqTokens + parsedStandardTokens + parsedComponentTokens + parsedMediaQueries
 }
 
@@ -215,7 +222,7 @@ export function parseCssClassesColor(
 
   const darkModeQuery = darkModeKeyValuePairs.length > 0 ? darkModeKeyValuePairs.reduce((acc: string, cur: string) => {
     return acc + '\n' + '\t' + cur + ';'
-  }, '\n\n@media (prefers-color-scheme: dark) {') + '\n}' : ''
+  }, '\n\n@media (prefers-color-scheme: dark) {') + '\n}\n\n' : ''
   return paletteString + globalVarString + darkModeQuery
 }
 
