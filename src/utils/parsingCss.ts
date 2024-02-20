@@ -147,7 +147,8 @@ export function parseCssClassesNumbers(
 
 export function parseCssClassesColor(
   parsedColorObjects: TParsedColorObject[],
-  outputFormat: TChosenOutputFormat
+  outputFormat: TChosenOutputFormat,
+  ignoreUnusedPrims: boolean
 ) {
   let isFirstVariableAlias = true
   const usedCssKeysAsValues: string[] = []
@@ -200,9 +201,9 @@ export function parseCssClassesColor(
   )
 
   const usedKeysNoDoubles = removeDoubles(usedCssKeysAsValues)
-  const filteredPalette = parsedPalette.filter((baseColorKeyValue: string) => {
+  const filteredPalette = ignoreUnusedPrims ? parsedPalette.filter((baseColorKeyValue: string) => {
     return usedKeysNoDoubles.includes(baseColorKeyValue.split(':')[0])
-  })
+  }) : parsedPalette
 
   const paletteString = filteredPalette.reduce((acc: string, cur: string) => {
     return acc + cur 

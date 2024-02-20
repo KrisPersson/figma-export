@@ -13,6 +13,12 @@
     position: relative;
     background: white;
   }
+
+  .options-section {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+  }
   .output-form__p {
     margin: 0.8rem 0;
   }
@@ -89,22 +95,38 @@
     Booleans only</label
   >
 </section>
-<section class="output-form">
-  <p class="output-form__p">Output format:</p>
-  <label class="output-form__option" for="output-css"
-    ><input
-      type="radio"
-      value="css"
-      id="output-css"
-      name="output-options"
-      checked
-    />
-    CSS</label
-  >
-  <label class="output-form__option" for="output-sass"
-    ><input type="radio" value="sass" id="output-sass" name="output-options" />
-    Sass</label
-  >
+<section class="options-section">
+  <section class="output-form">
+    <p class="output-form__p">Output format:</p>
+    <label class="output-form__option" for="output-css"
+      ><input
+        type="radio"
+        value="css"
+        id="output-css"
+        name="output-options"
+        checked
+      />
+      CSS</label
+    >
+    <label class="output-form__option" for="output-sass"
+      ><input type="radio" value="sass" id="output-sass" name="output-options" />
+      Sass</label
+    >
+  </section>
+  <section class="options-form">
+    <p class="options-form__p">Options</p>
+    <label class="options-form__option" for="option-ignore-unused-primitives"
+      ><input
+        type="checkbox"
+        value="true"
+        id="option-ignore-unused-primitives"
+        name="option-ignore-unused-primitives"
+        checked
+      />
+      Ignore Unused Primitives</label
+    >
+
+  </section>
 </section>
 <button id="export-btn">Export</button>
 
@@ -116,12 +138,16 @@
     const selectedOutputFormat = document.querySelector(
       'input[name="output-options"]:checked'
     )?.value
+    const ignoreUnusedPrims = document.querySelector(
+      'input[id="option-ignore-unused-primitives"]:checked'
+    )?.value
 
     parent.postMessage(
       {
         pluginMessage: {
           type: selectedVariablesType,
           outputFormat: selectedOutputFormat,
+          ignoreUnusedPrims: ignoreUnusedPrims ? true : false
         },
       },
       '*'

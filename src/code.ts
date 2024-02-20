@@ -13,9 +13,13 @@ import {
 figma.showUI(__html__)
 figma.ui.resize(500, 330)
 figma.ui.onmessage = async (msg) => {
-  const { type, outputFormat } = msg
+  const { type, outputFormat, ignoreUnusedPrims } = msg
 
-  
+  if (ignoreUnusedPrims) {
+    console.log('Checked!')
+  } else {
+    console.log('Not Checked!')
+  }
 
   const localVariables =
     msg.type !== 'all'
@@ -44,7 +48,7 @@ figma.ui.onmessage = async (msg) => {
   if (colorVariables.length > 0)
     output += parseCssClassesColor(
       parseColorObjectsFromVariables(colorVariables, outputFormat),
-      outputFormat
+      outputFormat, ignoreUnusedPrims
     )
   if (numberVariables.length > 0)
     output += parseCssClassesNumbers(
