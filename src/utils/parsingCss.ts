@@ -79,12 +79,12 @@ export function parseCssClassesNumbers(
 
         for (let i = 0; i < modeValues.length; i++) {
           let cssKey = cur.cssKey.slice(1)
-          const mqKey = `--_mq${cssKey}-${modeNames[i]}`
+          const mqKey = `${outputFormat === 'sass' ? '$' : '--'}_mq-${cssKey}-${modeNames[i]}`
           const mqValue = modeValues[i] 
-          mqTokens.push(`${mqKey}: ${Number(mqValue) ? `${mqValue}px` : `var(${mqValue})`}`)
-          if (mqValue?.split('-').includes('scale')) usedPrims.push(mqValue)
+          mqTokens.push(`${mqKey}: ${Number(mqValue) ? `${mqValue}px` : outputFormat === 'sass' ? `${mqValue}` : `var(${mqValue})`}`)
+          if (mqValue?.split('-').includes('scale' || '$scale')) usedPrims.push(mqValue)
           if (mediaQueryKeyWords.includes(modeNames[i]) && cssMediaQueries.hasOwnProperty(modeNames[i])) {
-            cssMediaQueries[modeNames[i]].keyValuePairs.push(`${cur.cssKey}: var(${mqKey})`)
+            cssMediaQueries[modeNames[i]].keyValuePairs.push(`${cur.cssKey}: ${outputFormat === 'sass' ? mqKey : `var(${mqKey})`}`)
             if (modeNames[i] === defaultModeValue) { // This is where the default mode-value is assigned as default value for the CSS-Key for the current variable. This is the value that is being overwritten later by media queries.
               defaultModeValue = `${mqKey}`
             }
@@ -102,7 +102,7 @@ export function parseCssClassesNumbers(
           return variable.originalId === curValue.id
         })
         const primitiveCssKey = primitiveNumber?.cssKey
-        if (primitiveCssKey?.split('-').includes('scale')) usedPrims.push(primitiveCssKey)
+        if (primitiveCssKey?.split('-').includes('scale') || primitiveCssKey?.split('-').includes('$scale')) usedPrims.push(primitiveCssKey)
         
         const parsedKeyAndValue =
           outputFormat === 'sass'
@@ -118,6 +118,7 @@ export function parseCssClassesNumbers(
   const { standardTokens, componentTokens } = separateNumberStandardTokensFromComponentTokens(standardAndComponentTokens)
   const usedPrimsNoDoubles = removeDoubles(usedPrims)
   const filteredNumbers = ignoreUnusedPrims ? numbers.filter(num => {
+    console.log(num, usedPrimsNoDoubles)
     return usedPrimsNoDoubles.includes(num.split(':')[0])
   }) : numbers
 
@@ -158,14 +159,12 @@ export function parseCssClassesColor(
   outputFormat: TChosenOutputFormat,
   ignoreUnusedPrims: boolean,
   createMediaQueries: boolean
-
 ) {
   let isFirstVariableAlias = true
   const usedCssKeysAsValues: string[] = []
   const parsedPalette: string[] = []
   const parsedGlobalVars: string[] = []
   const darkModeKeyValuePairs: string[] = []
-  
 
   parsedColorObjects.forEach(
     (cur: TParsedColorObject) => {
@@ -180,7 +179,7 @@ export function parseCssClassesColor(
           })
           const cssKey = primitiveColor?.cssKey as string
           usedCssKeysAsValues.push(cssKey)
-          darkModeValue = `var(${cssKey})`
+          darkModeValue = outputFormat === 'sass' ? cssKey : `var(${cssKey})`
         }
         darkModeKeyValuePairs.push(`${cur.cssKey}${cur.weight ? '-' + cur.weight : ''}: ${darkModeValue}`)
       }
