@@ -14,7 +14,7 @@ export type TParsedFloatObject = {
   valueIdentifiers: string[]
   originalId: string
   cssKey: string
-  cssUnit?: TCssUnit,
+  cssUnit?: TCssUnit
   groupAndName: string[]
 }
 
@@ -27,21 +27,21 @@ export type TParsedStringObject = {
 }
 
 export type TDeviceBreakPoints = {
-  mobile?: string;
-  tablet?: string; 
-  laptop?: string;
-  desktop?: string;
-  widescreen?: string;
+  mobile?: string
+  tablet?: string
+  laptop?: string
+  desktop?: string
+  widescreen?: string
 }
 
 export type TMediaQueriesMap = {
   [device: string]: {
-    keyValuePairs: string[];
+    keyValuePairs: string[]
   }
 }
 
 export type TmqEvaluationResult = {
-  [device: string]: string;
+  [device: string]: string
 }
 
 export type TCssUnit = 'px' | 'rem' | '%' | 'em' | string

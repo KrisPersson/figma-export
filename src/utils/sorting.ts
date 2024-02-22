@@ -1,4 +1,9 @@
-import { isMediaQuery, isNumericValue, isRgbaObject, isVariableAlias } from './typeguards'
+import {
+  isMediaQuery,
+  isNumericValue,
+  isRgbaObject,
+  isVariableAlias,
+} from './typeguards'
 import { extractWeight } from './index'
 
 export function sortColorVariables(colorVariables: Variable[]) {
@@ -61,16 +66,14 @@ export function sortColorVariables(colorVariables: Variable[]) {
 }
 
 export function sortNumberVariables(numberVariables: Variable[]) {
-
   const primitives: Variable[] = []
   const mediaQuerieTokens: Variable[] = []
   const tokens: Variable[] = []
 
-
   numberVariables.forEach((vari) => {
     const identifier = Object.keys(vari.valuesByMode)[0]
     const valuePath: VariableValue = vari.valuesByMode[identifier]
-    const groupAndName = vari.name.split('/').map(cur => cur.toLowerCase())
+    const groupAndName = vari.name.split('/').map((cur) => cur.toLowerCase())
 
     if (isNumericValue(valuePath)) primitives.push(vari)
     else if (isMediaQuery(groupAndName)) mediaQuerieTokens.push(vari)
@@ -78,7 +81,13 @@ export function sortNumberVariables(numberVariables: Variable[]) {
   })
 
   mediaQuerieTokens.sort((a, b) => {
-    if (b.name.split('/').map(cur => cur.toLowerCase()).includes('mobile')) return 1
+    if (
+      b.name
+        .split('/')
+        .map((cur) => cur.toLowerCase())
+        .includes('mobile')
+    )
+      return 1
     else return 0
   })
 
@@ -95,11 +104,13 @@ function isStandardNumberToken(string: string) {
   }
 }
 
-export function separateNumberStandardTokensFromComponentTokens(standardTokens: string[]) {
+export function separateNumberStandardTokensFromComponentTokens(
+  standardTokens: string[]
+) {
   const standards: string[] = []
   const components: string[] = []
 
-  standardTokens.forEach(token => {
+  standardTokens.forEach((token) => {
     if (isStandardNumberToken(token)) {
       standards.push(token)
     } else {

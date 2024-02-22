@@ -62,7 +62,8 @@ export function parseColorObjectsFromVariables(
         outputFormat
       )
 
-      const valuesByMode: (VariableAlias | RGBA)[] = extractColorValues(variable)
+      const valuesByMode: (VariableAlias | RGBA)[] =
+        extractColorValues(variable)
 
       return {
         group: groupAndColorName[0].toLowerCase(),
@@ -70,7 +71,7 @@ export function parseColorObjectsFromVariables(
         values: [...valuesByMode],
         originalId: variable.id,
         cssKey,
-        weight
+        weight,
       }
     }
   )
@@ -108,17 +109,22 @@ export function extractColorValues(variable: Variable) {
 
 export function extractModeIds(variable: Variable) {
   const identifiers = Object.keys(variable.valuesByMode)
-  
+
   return identifiers
 }
 
-export function getModeNameByModeId(modeId: string, localCollections: VariableCollection[]) {
-
+export function getModeNameByModeId(
+  modeId: string,
+  localCollections: VariableCollection[]
+) {
   for (let i = 0; i < localCollections.length; i++) {
     const modes = localCollections[i].modes
     for (const mode of modes) {
       if (mode.modeId === modeId) {
-        return { modeName: mode.name, isDefaultModeId: mode.modeId === localCollections[i].defaultModeId } // Returns mode name and whether or not it is the defaultMode
+        return {
+          modeName: mode.name,
+          isDefaultModeId: mode.modeId === localCollections[i].defaultModeId,
+        } // Returns mode name and whether or not it is the defaultMode
       }
     }
   }
@@ -143,7 +149,7 @@ export function parseFloatsObjectsFromVariables(
       values: extractFloatValues(variable),
       valueIdentifiers: extractModeIds(variable),
       cssKey: `${outputFormat === 'sass' ? '$' : '--'}${groupAndName.join('-')}`,
-      originalId: variable.id
+      originalId: variable.id,
     }
   })
   return parsedFloatObjects
@@ -170,7 +176,7 @@ export function parseStringObjectsFromVariables(
       cssKey: isVariableAlias(valuePath)
         ? `${outputFormat === 'sass' ? '$' : '--'}${groupAndName.join('-')}`
         : `${outputFormat === 'sass' ? '$' : '--_'}${name.toLowerCase().replace(' ', '-')}`,
-      originalId: variable.id
+      originalId: variable.id,
     }
   })
   return parsedStringObjects

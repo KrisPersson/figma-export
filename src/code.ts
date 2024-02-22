@@ -13,7 +13,13 @@ import {
 figma.showUI(__html__)
 figma.ui.resize(500, 370)
 figma.ui.onmessage = async (msg) => {
-  const { type, outputFormat, ignoreUnusedPrims, createMediaQueries } = msg
+  const {
+    type,
+    outputFormat,
+    ignoreUnusedPrims,
+    createMediaQueries,
+    createClassesForColorModes,
+  } = msg
 
   const localVariables =
     msg.type !== 'all'
@@ -42,12 +48,17 @@ figma.ui.onmessage = async (msg) => {
   if (colorVariables.length > 0)
     output += parseCssClassesColor(
       parseColorObjectsFromVariables(colorVariables, outputFormat),
-      outputFormat, ignoreUnusedPrims, createMediaQueries
+      outputFormat,
+      ignoreUnusedPrims,
+      createMediaQueries,
+      createClassesForColorModes
     )
   if (numberVariables.length > 0)
     output += parseCssClassesNumbers(
       parseFloatsObjectsFromVariables(numberVariables, outputFormat),
-      outputFormat, ignoreUnusedPrims, createMediaQueries
+      outputFormat,
+      ignoreUnusedPrims,
+      createMediaQueries
     )
   if (stringVariables.length > 0)
     output += parseCssClassesStrings(

@@ -23,7 +23,8 @@
     display: flex;
     flex-flow: column nowrap;
   }
-  .output-form__p {
+  .output-form__p,
+  .options-form__p {
     margin: 0.8rem 0;
   }
   h2 {
@@ -113,7 +114,12 @@
       CSS</label
     >
     <label class="output-form__option" for="output-sass"
-      ><input type="radio" value="sass" id="output-sass" name="output-options" />
+      ><input
+        type="radio"
+        value="sass"
+        id="output-sass"
+        name="output-options"
+      />
       Sass</label
     >
   </section>
@@ -139,7 +145,15 @@
       />
       Create Media Queries</label
     >
-
+    <label class="options-form__option" for="option-create-color-modes-classes"
+      ><input
+        type="checkbox"
+        value="true"
+        id="option-create-color-modes-classes"
+        name="option-create-color-modes-classes"
+      />
+      Create Dark Mode Class</label
+    >
   </section>
 </section>
 <button id="export-btn">Export</button>
@@ -158,6 +172,9 @@
     const createMediaQueries = document.querySelector(
       'input[id="option-create-media-queries"]:checked'
     )?.value
+    const createClassesForColorModes = document.querySelector(
+      'input[id="option-create-color-modes-classes"]:checked'
+    )?.value
 
     parent.postMessage(
       {
@@ -165,8 +182,9 @@
           type: selectedVariablesType,
           outputFormat: selectedOutputFormat,
           ignoreUnusedPrims: ignoreUnusedPrims ? true : false,
-          createMediaQueries: createMediaQueries ? true : false
-        }
+          createMediaQueries: createMediaQueries ? true : false,
+          createClassesForColorModes: createClassesForColorModes ? true : false,
+        },
       },
       '*'
     )
