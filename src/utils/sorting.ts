@@ -91,6 +91,14 @@ export function sortNumberVariables(numberVariables: Variable[]) {
     else return 0
   })
 
+  primitives.sort((a, b) => {
+    const identifierA = Object.keys(a.valuesByMode)[0]
+    const valuePathA: VariableValue = a.valuesByMode[identifierA]
+    const identifierB = Object.keys(b.valuesByMode)[0]
+    const valuePathB: VariableValue = b.valuesByMode[identifierB]
+    return Number(valuePathA) - Number(valuePathB)
+  })
+
   const sortedNumberVariables = [...primitives, ...mediaQuerieTokens, ...tokens]
   return sortedNumberVariables
 }

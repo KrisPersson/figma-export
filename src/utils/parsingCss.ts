@@ -73,7 +73,6 @@ export function parseCssClassesNumbers(
   }
 
   parsedFloatObjects.forEach((cur: TParsedFloatObject, j: number) => {
-    console.log(parsedFloatObjects.length, j)
     const modeValues = getModeValues(cur.values, parsedFloatObjects)
 
     const isEveryModeValueTheSame = isEveryNameTheSame(modeValues)
@@ -99,10 +98,10 @@ export function parseCssClassesNumbers(
         mqTokens.push(
           `${mqKey}: ${isNumericValue(mqValue) ? `${mqValue}px` : outputFormat === 'sass' ? `${mqValue}` : `var(${mqValue})`}`
         )
-        if (j === 23 && i === 1) console.log(mqValue)
 
         if (mqValue?.toString().split('-').includes('scale' || '$scale') || isNumericValue(mqValue))
           usedPrims.push(mqValue)
+
         if (
           mediaQueryKeyWords.includes(modeNames[i]) &&
           cssMediaQueries.hasOwnProperty(modeNames[i])
@@ -115,12 +114,8 @@ export function parseCssClassesNumbers(
             // This is where the default mode-value is assigned as default value for the CSS-Key for the current variable. This is the value that is being overwritten later by media queries.
             defaultModeValue = `${mqKey}`
           }
-
         }
-        
-
       }
-
     }
 
     if (isNumericValue(cur.values[0])) {
@@ -157,15 +152,11 @@ export function parseCssClassesNumbers(
       })
     : numbers
 
-  // let cssString = cssFloatsStringArr.reduce((acc: string, cur: string) => {
-  //   return acc + cur + ';\n'
-  // },'')
-
   const parsedNumbersSection =
     filteredNumbers.length > 0
       ? filteredNumbers.reduce((acc: string, cur: string) => {
           return acc + cur + ';\n'
-        }, '/* Numbers */\n\n')
+        }, '\n/* Numbers */\n\n')
       : ''
 
   const parsedMqTokens =
