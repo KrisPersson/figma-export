@@ -25,7 +25,6 @@ figma.ui.onmessage = async (msg) => {
     msg.type !== 'all'
       ? figma.variables.getLocalVariables(type.toUpperCase())
       : figma.variables.getLocalVariables() // argument optional to filter by variabel-type, for example "STRING"
-
   const colorVariables =
     type === 'all' || type === 'color'
       ? localVariables.filter((variable) => variable.resolvedType === 'COLOR')
@@ -44,7 +43,6 @@ figma.ui.onmessage = async (msg) => {
       : []
 
   let output = ''
-
   if (colorVariables.length > 0)
     output += parseCssClassesColor(
       parseColorObjectsFromVariables(colorVariables, outputFormat),

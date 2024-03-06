@@ -72,8 +72,10 @@ export function parseCssClassesNumbers(
     },
   }
 
-  parsedFloatObjects.forEach((cur: TParsedFloatObject) => {
+  parsedFloatObjects.forEach((cur: TParsedFloatObject, j: number) => {
+    console.log(parsedFloatObjects.length, j)
     const modeValues = getModeValues(cur.values, parsedFloatObjects)
+
     const isEveryModeValueTheSame = isEveryNameTheSame(modeValues)
     const modeNames: string[] = []
     let defaultModeValue = ''
@@ -89,15 +91,17 @@ export function parseCssClassesNumbers(
           defaultModeValue = modeName.replace(' ', '-').toLowerCase() as string
         modeNames.push(modeName.replace(' ', '-').toLowerCase() as string)
       })
-
       for (let i = 0; i < modeValues.length; i++) {
+
         let cssKey = cur.cssKey.slice(1)
         const mqKey = `${outputFormat === 'sass' ? '$_mq-' : '--_mq'}${cssKey}-${modeNames[i]}`
         const mqValue = modeValues[i]
         mqTokens.push(
-          `${mqKey}: ${Number(mqValue) ? `${mqValue}px` : outputFormat === 'sass' ? `${mqValue}` : `var(${mqValue})`}`
+          `${mqKey}: ${isNumericValue(mqValue) ? `${mqValue}px` : outputFormat === 'sass' ? `${mqValue}` : `var(${mqValue})`}`
         )
-        if (mqValue?.split('-').includes('scale' || '$scale'))
+        if (j === 23 && i === 1) console.log(mqValue)
+
+        if (mqValue?.toString().split('-').includes('scale' || '$scale') || isNumericValue(mqValue))
           usedPrims.push(mqValue)
         if (
           mediaQueryKeyWords.includes(modeNames[i]) &&
@@ -106,13 +110,19 @@ export function parseCssClassesNumbers(
           cssMediaQueries[modeNames[i]].keyValuePairs.push(
             `${cur.cssKey}: ${outputFormat === 'sass' ? mqKey : `var(${mqKey})`}`
           )
+
           if (modeNames[i] === defaultModeValue) {
             // This is where the default mode-value is assigned as default value for the CSS-Key for the current variable. This is the value that is being overwritten later by media queries.
             defaultModeValue = `${mqKey}`
           }
+
         }
+        
+
       }
+
     }
+
     if (isNumericValue(cur.values[0])) {
       const curValue = cur.values[0]
       numbers.push(`${cur.cssKey}: ${curValue}px`)
