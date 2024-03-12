@@ -99,9 +99,10 @@ export function parseCssClassesNumbers(
           `${mqKey}: ${isNumericValue(mqValue) ? `${mqValue}px` : outputFormat === 'sass' ? `${mqValue}` : `var(${mqValue})`}`
         )
 
-        if (mqValue?.toString().split('-').includes('scale' || '$scale') || isNumericValue(mqValue))
-          usedPrims.push(mqValue)
-
+        const splitMqValue = mqValue?.toString().split('-')
+        if (splitMqValue?.includes('scale') || splitMqValue?.includes('$scale') || isNumericValue(mqValue)) {
+          usedPrims.push(mqValue as string)
+        }
         if (
           mediaQueryKeyWords.includes(modeNames[i]) &&
           cssMediaQueries.hasOwnProperty(modeNames[i])
@@ -111,7 +112,7 @@ export function parseCssClassesNumbers(
           )
 
           if (modeNames[i] === defaultModeValue) {
-            // This is where the default mode-value is assigned as default value for the CSS-Key for the current variable. This is the value that is being overwritten later by media queries.
+            // This is where the default mode-value is assigned as default value for the CSS-Key for the current variable. This is the value that is being overridden later by media queries.
             defaultModeValue = `${mqKey}`
           }
         }
@@ -127,11 +128,13 @@ export function parseCssClassesNumbers(
         return variable.originalId === curValue.id
       })
       const primitiveCssKey = primitiveNumber?.cssKey
+      
       if (
         primitiveCssKey?.split('-').includes('scale') ||
         primitiveCssKey?.split('-').includes('$scale')
-      )
+      ) {
         usedPrims.push(primitiveCssKey)
+      }
 
       const parsedKeyAndValue =
         outputFormat === 'sass'
