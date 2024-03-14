@@ -4,7 +4,7 @@ import { parseColorNameAndCssKey } from './parsingCss'
 
 import { sortColorVariables, sortNumberVariables } from './sorting'
 
-import { isVariableAlias, isNumericValue } from './typeguards'
+import { isVariableAlias } from './typeguards'
 
 import { extractColorValues, extractFloatValues, extractModeIds } from './helpers'
 
@@ -18,14 +18,12 @@ export function parseColorObjectsFromVariables(
   const sortedColorVariables = sortColorVariables(colorVariables)
 
   const parsedColorObjects: TParsedColorObject[] = sortedColorVariables.map(
-    (variable, i: Number) => {
-      const identifiers = Object.keys(variable.valuesByMode)
+    (variable) => {
       const groupAndColorName: string[] = variable.name.split('/')
       const { cssKey, name, weight } = parseColorNameAndCssKey(
         variable,
         outputFormat
       )
-
       const valuesByMode: (VariableAlias | RGBA)[] =
         extractColorValues(variable)
 

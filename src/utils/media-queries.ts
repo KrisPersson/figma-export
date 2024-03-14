@@ -18,7 +18,7 @@ export function evaluatePresentViewports(cssMediaQueries: TMediaQueriesMap) {
     let result: TmqEvaluationResult = {}
   
     const arr = [mobile, tablet, laptop, desktop, widescreen]
-  
+
     if (arr.every((vp) => vp)) {
       result = {
         mobile: '@media (max-width: 599px)',

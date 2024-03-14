@@ -3,7 +3,6 @@ import {
   TParsedColorObject,
   TChosenOutputFormat,
   TParsedStringObject,
-  TDeviceBreakPoints,
   TMediaQueriesMap
 } from '../types'
 import {
@@ -30,13 +29,6 @@ export function parseCssClassesNumbers(
   ignoreUnusedPrims: boolean,
   createMediaQueries: boolean
 ) {
-  const deviceBreakPoints: TDeviceBreakPoints = {
-    mobile: '(max-width: 599px)',
-    tablet: '(min-width: 600px) and (max-width: 899px)',
-    laptop: '(min-width: 900px)',
-    desktop: '(min-width: 900px)',
-    widescreen: '(min-width: 1240px)',
-  }
 
   const localCollections = figma.variables.getLocalVariableCollections()
 
@@ -201,7 +193,6 @@ export function parseCssClassesColor(
   createMediaQueries: boolean,
   createClassesForColorModes: boolean
 ) {
-  let isFirstVariableAlias = true
   const usedCssKeysAsValues: string[] = []
   const parsedPalette: string[] = []
   const parsedGlobalVars: string[] = []
@@ -240,7 +231,6 @@ export function parseCssClassesColor(
       const primitiveCssKey = primitiveColor?.cssKey as string
       usedCssKeysAsValues.push(primitiveCssKey)
 
-      isFirstVariableAlias = false
       const parsedKeyAndValue =
         outputFormat === 'sass'
           ? `$c-${cur.name.replace(' ', '-')}${cur.weight ? '-' + cur.weight : ''}: ${primitiveCssKey?.toLowerCase()}`
