@@ -4,26 +4,25 @@ import {
   TChosenOutputFormat,
   TParsedStringObject,
   TDeviceBreakPoints,
-  TMediaQueriesMap,
-  TmqEvaluationResult,
+  TMediaQueriesMap
 } from '../types'
 import {
   isRgbaObject,
   isVariableAlias,
   isNumericValue,
-  isStringValue,
-  isMediaQuery,
+  isStringValue
 } from './typeguards'
-import { extractWeight, getModeNameByModeId } from './index'
 import {
   isEveryNameTheSame,
   getModeValues,
-  evaluatePresentViewports,
-  parseMediaQueries,
   areColorsTheSame,
   removeDoubles,
+  extractWeight,
+  getModeNameByModeId
 } from './helpers'
 import { separateNumberStandardTokensFromComponentTokens } from './sorting'
+import { evaluatePresentViewports,
+  parseMediaQueries, mediaQueryKeyWords } from "./media-queries"
 
 export function parseCssClassesNumbers(
   parsedFloatObjects: TParsedFloatObject[],
@@ -38,13 +37,6 @@ export function parseCssClassesNumbers(
     desktop: '(min-width: 900px)',
     widescreen: '(min-width: 1240px)',
   }
-  const mediaQueryKeyWords = [
-    'mobile',
-    'tablet',
-    'laptop',
-    'desktop',
-    'widescreen',
-  ]
 
   const localCollections = figma.variables.getLocalVariableCollections()
 
@@ -54,25 +46,26 @@ export function parseCssClassesNumbers(
   const usedPrims: string[] = []
   const mqTokens: string[] = []
   const standardAndComponentTokens: string[] = []
+
   let cssMediaQueries: TMediaQueriesMap = {
     mobile: {
-      keyValuePairs: [],
+      keyValuePairs: []
     },
     tablet: {
-      keyValuePairs: [],
+      keyValuePairs: []
     },
     laptop: {
-      keyValuePairs: [],
+      keyValuePairs: []
     },
     desktop: {
-      keyValuePairs: [],
+      keyValuePairs: []
     },
     widescreen: {
-      keyValuePairs: [],
-    },
+      keyValuePairs: []
+    }
   }
 
-  parsedFloatObjects.forEach((cur: TParsedFloatObject, j: number) => {
+  parsedFloatObjects.forEach((cur: TParsedFloatObject) => {
     const modeValues = getModeValues(cur.values, parsedFloatObjects)
 
     const isEveryModeValueTheSame = isEveryNameTheSame(modeValues)
@@ -247,9 +240,6 @@ export function parseCssClassesColor(
       const primitiveCssKey = primitiveColor?.cssKey as string
       usedCssKeysAsValues.push(primitiveCssKey)
 
-      const lineBreak = isFirstVariableAlias
-        ? '\n/* Global variables */\n\n'
-        : ''
       isFirstVariableAlias = false
       const parsedKeyAndValue =
         outputFormat === 'sass'

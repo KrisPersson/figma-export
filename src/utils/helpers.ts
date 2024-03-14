@@ -1,9 +1,27 @@
 import {
-  TParsedFloatObject,
-  TMediaQueriesMap,
-  TmqEvaluationResult,
+  TParsedFloatObject
 } from '../types'
 import { isVariableAlias } from './typeguards'
+
+export function convertPercentageToRgba(rgbObject: RGBA) {
+  const { r, g, b, a } = rgbObject
+  const convertedObject = {
+    r: Math.floor(r * 255),
+    g: Math.floor(g * 255),
+    b: Math.floor(b * 255),
+    a: Number(a.toFixed(2))
+  }
+  return { ...convertedObject }
+}
+
+export function extractWeight(groupAndColorName: string[]) {
+  const weight =
+    groupAndColorName.find((item: string) => {
+      const string = item.replace('%', '')
+      return string === '0' ? true : !!Number(string)
+    }) || ''
+  return weight
+}
 
 export function isEveryNameTheSame(modeNames: (string | undefined)[]) {
   const control = modeNames[0]
@@ -29,73 +47,12 @@ export function getModeValues(
   return result
 }
 
-export function evaluatePresentViewports(cssMediaQueries: TMediaQueriesMap) {
-  const mobile = cssMediaQueries.mobile.keyValuePairs.length > 0
-  const tablet = cssMediaQueries.tablet.keyValuePairs.length > 0
-  const laptop = cssMediaQueries.laptop.keyValuePairs.length > 0
-  const desktop = cssMediaQueries.desktop.keyValuePairs.length > 0
-  const widescreen = cssMediaQueries.widescreen.keyValuePairs.length > 0
-
-  let result: TmqEvaluationResult = {}
-
-  const arr = [mobile, tablet, laptop, desktop, widescreen]
-
-  if (arr.every((vp) => vp)) {
-    result = {
-      mobile: '@media (max-width: 599px)',
-      tablet: '@media (min-width: 600px) and (max-width: 1039px)',
-      laptop: '@media (min-width: 1040px) and (max-width: 1439px)',
-      desktop: '@media (min-width: 1440px) and (max-width: 1919px)',
-      widescreen: '@media (min-width: 1920px)',
-    }
-  } else {
-    if (tablet) {
-      result = {
-        mobile: '@media (max-width: 599px)',
-        tablet: '@media (min-width: 600px) and (max-width: 1039px)',
-      }
-      if (laptop && desktop)
-        result = {
-          ...result,
-          laptop: '@media (min-width: 1040px) and (max-width: 1439px)',
-          desktop: '@media (min-width: 1440px)',
-        }
-      else if (laptop && !desktop)
-        result = { ...result, laptop: '@media (min-width: 1040px)' }
-      else result = { ...result, desktop: '@media (min-width: 1040px)' }
-    } else {
-      result = {
-        mobile: '@media (max-width: 799px)',
-        desktop: '@media (min-width: 800px)',
-      }
-    }
-  }
-
-  return result
-}
-
 export function removeDoubles(stringArr: string[]) {
   const newArr: string[] = []
   stringArr.forEach((str) => {
     if (!newArr.includes(str)) newArr.push(str)
   })
   return newArr
-}
-
-export function parseMediaQueries(
-  cssMediaQueries: TMediaQueriesMap,
-  evaluatedMQs: TmqEvaluationResult
-) {
-  const evMqKeys = Object.keys(evaluatedMQs)
-
-  const mappedKeys = evMqKeys.map((mqKey) => {
-    return `${evaluatedMQs[mqKey]} {\n${cssMediaQueries[
-      mqKey
-    ].keyValuePairs.reduce((acc, cur) => {
-      return acc + '\t' + cur + ';\n'
-    }, '')}};\n`
-  })
-  return mappedKeys
 }
 
 export function areColorsTheSame(
@@ -118,4 +75,65 @@ export function areColorsTheSame(
     if (colorOneAlias.id !== colorTwoAlias.id) return false
   }
   return true
+}
+
+export function extractFloatValues(variable: Variable) {
+  const identifiers = Object.keys(variable.valuesByMode)
+  const values = []
+  for (const key of identifiers) {
+    const valuePath = variable.valuesByMode[key]
+    if (isVariableAlias(valuePath)) {
+      values.push({ ...valuePath } as VariableAlias)
+    } else {
+      values.push(valuePath as string)
+    }
+  }
+  return values
+}
+
+export function extractColorValues(variable: Variable) {
+  const identifiers = Object.keys(variable.valuesByMode)
+  const values: (VariableAlias | RGBA)[] = []
+  for (const key of identifiers) {
+    const valuePath = variable.valuesByMode[key]
+    if (isVariableAlias(valuePath)) {
+      values.push({ ...valuePath } as VariableAlias)
+    } else {
+      values.push(convertPercentageToRgba(valuePath as RGBA))
+    }
+  }
+
+  return values
+}
+
+export function extractModeIds(variable: Variable) {
+  const identifiers = Object.keys(variable.valuesByMode)
+
+  return identifiers
+}
+
+export function getModeNameByModeId(
+  modeId: string,
+  localCollections: VariableCollection[]
+) {
+  for (let i = 0; i < localCollections.length; i++) {
+    const modes = localCollections[i].modes
+    for (const mode of modes) {
+      if (mode.modeId === modeId) {
+        return {
+          modeName: mode.name,
+          isDefaultModeId: mode.modeId === localCollections[i].defaultModeId,
+        } // Returns mode name and whether or not it is the defaultMode
+      }
+    }
+  }
+}
+
+export function isStandardNumberToken(string: string) {
+  const arr = string.split('-')
+  if (arr.includes('_mq') && arr.includes('mobile)')) {
+    return true
+  } else {
+    return false
+  }
 }
