@@ -4,46 +4,10 @@ import { parseColorNameAndCssKey } from './parsingCss'
 
 import { sortColorVariables, sortNumberVariables } from './sorting'
 
-import { isVariableAlias, isNumericValue } from './typeguards'
+import { isVariableAlias } from './typeguards'
 
-export function convertPercentageToRgba(rgbObject: RGBA) {
-  const { r, g, b, a } = rgbObject
-  const convertedObject = {
-    r: Math.floor(r * 255),
-    g: Math.floor(g * 255),
-    b: Math.floor(b * 255),
-    a: Number(a.toFixed(2)),
-  }
-  return { ...convertedObject }
-}
+import { extractColorValues, extractFloatValues, extractModeIds } from './helpers'
 
-export function extractWeight(groupAndColorName: string[]) {
-  const weight =
-    groupAndColorName.find((item: string) => {
-      const string = item.replace('%', '')
-      return string === '0' ? true : !!Number(string)
-    }) || ''
-  return weight
-}
-
-export function extractRoleFromWeight(weight: number) {
-  switch (weight) {
-    case 900:
-      return 'dark'
-    case 700:
-      return 'contrast'
-    case 500:
-      return 'base'
-    case 300:
-      return 'element'
-    case 100:
-      return 'bg'
-    case 0:
-      return 'light'
-    default:
-      throw new Error('No case matched at function extractRoleFromWeight')
-  }
-}
 
 export function parseColorObjectsFromVariables(
   colorVariables: Variable[],
@@ -54,14 +18,12 @@ export function parseColorObjectsFromVariables(
   const sortedColorVariables = sortColorVariables(colorVariables)
 
   const parsedColorObjects: TParsedColorObject[] = sortedColorVariables.map(
-    (variable, i: Number) => {
-      const identifiers = Object.keys(variable.valuesByMode)
+    (variable) => {
       const groupAndColorName: string[] = variable.name.split('/')
       const { cssKey, name, weight } = parseColorNameAndCssKey(
         variable,
         outputFormat
       )
-
       const valuesByMode: (VariableAlias | RGBA)[] =
         extractColorValues(variable)
 
@@ -76,58 +38,6 @@ export function parseColorObjectsFromVariables(
     }
   )
   return parsedColorObjects
-}
-
-export function extractFloatValues(variable: Variable) {
-  const identifiers = Object.keys(variable.valuesByMode)
-  const values = []
-  for (const key of identifiers) {
-    const valuePath = variable.valuesByMode[key]
-    if (isVariableAlias(valuePath)) {
-      values.push({ ...valuePath } as VariableAlias)
-    } else {
-      values.push(valuePath as string)
-    }
-  }
-  return values
-}
-
-export function extractColorValues(variable: Variable) {
-  const identifiers = Object.keys(variable.valuesByMode)
-  const values: (VariableAlias | RGBA)[] = []
-  for (const key of identifiers) {
-    const valuePath = variable.valuesByMode[key]
-    if (isVariableAlias(valuePath)) {
-      values.push({ ...valuePath } as VariableAlias)
-    } else {
-      values.push(convertPercentageToRgba(valuePath as RGBA))
-    }
-  }
-
-  return values
-}
-
-export function extractModeIds(variable: Variable) {
-  const identifiers = Object.keys(variable.valuesByMode)
-
-  return identifiers
-}
-
-export function getModeNameByModeId(
-  modeId: string,
-  localCollections: VariableCollection[]
-) {
-  for (let i = 0; i < localCollections.length; i++) {
-    const modes = localCollections[i].modes
-    for (const mode of modes) {
-      if (mode.modeId === modeId) {
-        return {
-          modeName: mode.name,
-          isDefaultModeId: mode.modeId === localCollections[i].defaultModeId,
-        } // Returns mode name and whether or not it is the defaultMode
-      }
-    }
-  }
 }
 
 export function parseFloatsObjectsFromVariables(

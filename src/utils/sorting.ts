@@ -4,7 +4,7 @@ import {
   isRgbaObject,
   isVariableAlias,
 } from './typeguards'
-import { extractWeight } from './index'
+import { extractWeight, isStandardNumberToken } from './helpers'
 
 export function sortColorVariables(colorVariables: Variable[]) {
   const primitives = colorVariables.filter((vari) => {
@@ -103,14 +103,7 @@ export function sortNumberVariables(numberVariables: Variable[]) {
   return sortedNumberVariables
 }
 
-function isStandardNumberToken(string: string) {
-  const arr = string.split('-')
-  if (arr.includes('_mq') && arr.includes('mobile)')) {
-    return true
-  } else {
-    return false
-  }
-}
+
 
 export function separateNumberStandardTokensFromComponentTokens(
   standardTokens: string[]
