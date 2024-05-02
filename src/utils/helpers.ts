@@ -137,3 +137,17 @@ export function isStandardNumberToken(string: string) {
     return false
   }
 }
+
+export function camelCaseify(name: string) {
+  const newName = name.replace("--c-", "").split("-").filter(item => item)
+  let string = ''
+  newName.forEach((item, i) => {
+    if (i === 0) {
+      string += item
+    } else {
+      string += (item[0].toUpperCase() + item.slice(1))
+    }
+  })
+  
+  return string
+}

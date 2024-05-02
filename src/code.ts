@@ -10,6 +10,10 @@ import {
   parseCssClassesStrings,
 } from './utils/parsingCss'
 
+import {
+  parseTheme
+} from "./utils/parsingTheme"
+
 figma.showUI(__html__)
 figma.ui.resize(500, 370)
 figma.ui.onmessage = async (msg) => {
@@ -43,6 +47,11 @@ figma.ui.onmessage = async (msg) => {
       : []
 
   let output = ''
+  if (outputFormat === "jstheme") {
+    output += parseTheme(localVariables)
+    console.log(output)
+    return
+  }
   if (colorVariables.length > 0)
     output += parseCssClassesColor(
       parseColorObjectsFromVariables(colorVariables, outputFormat),

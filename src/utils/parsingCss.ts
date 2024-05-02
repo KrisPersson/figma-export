@@ -208,6 +208,7 @@ export function parseCssClassesColor(
         darkModeValue = `rgba(${cur.values[1].r}, ${cur.values[1].g}, ${cur.values[1].b}, ${cur.values[1].a})`
       } else {
         const curValue = cur.values[1] as VariableAlias
+
         const primitiveColor = parsedColorObjects.find((variable) => {
           return variable.originalId === curValue.id
         })

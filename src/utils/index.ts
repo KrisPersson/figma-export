@@ -16,6 +16,7 @@ export function parseColorObjectsFromVariables(
   // Sorting variables so that token-variables (VariableAlias) are put at the end of the queue.
 
   const sortedColorVariables = sortColorVariables(colorVariables)
+  console.log(sortedColorVariables)
 
   const parsedColorObjects: TParsedColorObject[] = sortedColorVariables.map(
     (variable) => {
@@ -37,6 +38,7 @@ export function parseColorObjectsFromVariables(
       }
     }
   )
+  console.log(parsedColorObjects)
   return parsedColorObjects
 }
 
