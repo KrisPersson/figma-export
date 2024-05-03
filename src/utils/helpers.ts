@@ -1,7 +1,7 @@
 import {
   TParsedFloatObject
 } from '../types'
-import { isVariableAlias } from './typeguards'
+import { isRgbaObject, isStringValue, isVariableAlias } from './typeguards'
 
 export function convertPercentageToRgba(rgbObject: RGBA) {
   const { r, g, b, a } = rgbObject
@@ -127,6 +127,7 @@ export function getModeNameByModeId(
       }
     }
   }
+  return { modeName: "", isDefaultModeId: false }
 }
 
 export function isStandardNumberToken(string: string) {
@@ -150,4 +151,60 @@ export function camelCaseify(name: string) {
   })
   
   return string
+}
+
+export function findPrimitiveFloatValue(objectsToSearch: any[], startVal: string | number | VariableAlias, ending = "px") {
+  if (typeof startVal === "string" || typeof startVal === "number") {
+    return `${startVal}${ending}` as string
+  } 
+  
+  let primitiveValue = objectsToSearch.find(variable => {
+    return variable.originalId === startVal.id
+  })
+
+  if (isVariableAlias(primitiveValue.values[0])) {
+    findPrimitiveFloatValue(objectsToSearch, primitiveValue.values[0])
+  } else {
+    return `${primitiveValue.values[0]}${ending}`
+  }
+}
+
+export function findPrimitiveColorValue(objectsToSearch: any[], startVal: string | number | VariableAlias, ending = "") {
+  if (isRgbaObject(startVal)) {
+    console.log('uppe')
+    const {r, g, b, a} = startVal as RGBA
+    return `rgba(${r}, ${g}, ${b}, ${a})` as string
+  } 
+  
+  let primitiveValue = objectsToSearch.find(variable => {
+    const value = startVal as VariableAlias
+    return variable.originalId === value.id
+  })
+
+  if (isVariableAlias(primitiveValue.values[0])) {
+    findPrimitiveColorValue(objectsToSearch, primitiveValue.values[0])
+  } else {
+    const {r, g, b, a} = primitiveValue?.values[0] as RGBA
+    return `rgba(${r}, ${g}, ${b}, ${a})`
+  }
+}
+
+export function arrayToPath(arr: string[]) {
+  return arr.reduce((acc, current) => {
+      return acc ? `${acc}[${JSON.stringify(current)}]` : `[${JSON.stringify(current)}]`;
+  }, '');
+}
+
+export function applyPathToObject(obj: any, path: string, value: string) {
+  const keys = path.split('[').filter(Boolean).map(key => key.replace(/["\]]/g, ''));
+  let current = obj;
+  for (const key of keys) {
+      if (!current[key]) {
+          current[key] = {};
+      }
+      if (keys.indexOf(key) === keys.length - 1) {
+          current[key] = value;
+      }
+      current = current[key];
+  }
 }
