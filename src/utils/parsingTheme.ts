@@ -1,6 +1,6 @@
 import { parseColorObjectsFromVariables, parseFloatsObjectsFromVariables } from "./index"
 import { isVariableAlias } from "./typeguards"
-import { camelCaseify, getModeNameByModeId, findPrimitiveFloatValue, arrayToPath, applyPathToObject, findPrimitiveColorValue } from "./helpers"
+import { camelCaseify, getModeNameByModeId, findPrimitiveFloatValue, arrayToPath, applyPathToObject, findPrimitiveColorValue, getAllTextNodes, evaluateTextNodes } from "./helpers"
 
 export function parseTheme(localVariables: Variable[]) {
     const localCollections = figma.variables.getLocalVariableCollections()
@@ -15,7 +15,8 @@ export function parseTheme(localVariables: Variable[]) {
             LtLg: "@media (max-width: 1199px)",
         },
         colors: {},
-        darkMode: {}
+        darkMode: {},
+        font: {}
     }
 
     // ---- COLORS ----
@@ -56,6 +57,13 @@ export function parseTheme(localVariables: Variable[]) {
             applyPathToObject(theme, path, primitiveVal as string);
         })
     }
+
+    // ---- FONTS ----
+    const currentPage = figma.currentPage
+    const textNodes = getAllTextNodes(currentPage)
+    const font = evaluateTextNodes(textNodes)
+
+    theme.font = {...font}
 
     return JSON.stringify(theme)
 

@@ -208,3 +208,138 @@ export function applyPathToObject(obj: any, path: string, value: string) {
       current = current[key];
   }
 }
+
+export function getAllTextNodes(pageNode: PageNode) {
+
+  const arr = []
+
+  for (const child of pageNode.children) {
+    if (child.type === "FRAME") {
+      for (const node of child.children) {
+        if (node.type === "TEXT") {
+          arr.push(node)
+        }
+      }
+    }
+  }
+  return arr
+}
+
+export function evaluateTextNodes(textNodes: TextNode[]) {
+  console.log(textNodes)
+  const familyLabels = ["main", "secondary", "tertiary", "quarternary", "quinary"]
+  const lineHeightLabels = ["main", "alt", "tertiary", "quarternary", "quinary", "senary"]
+  const fontSizeLabels = ["xxxsmall", "xxsmall", "xsmall", "small", "regular", "large", "xlarge", "xxlarge", "xxxlarge", "xxxxlarge"]
+  const styleValues: {[key: string]: number} = {
+    thin: 100,
+    light: 300,
+    regular: 400,
+    medium: 500,
+    bold: 700,
+    black: 900
+  }
+
+  let font: {[key: string]: any} = {
+    family: {},
+    weight: {}
+  }
+
+  type LineHeightCast = {
+    value: number;
+    unit: "PIXELS" | "PERCENT";
+  }
+
+  const countingFamilyInstances: {[key: string]: number} = {}
+  const countingLineHeightInstances: {[key: string]: number} = {}
+
+  const families: string[] = []
+  const weights: string[] = []
+  const fontSizes: number[] = []
+  const lineHeights: number[] = []
+
+  for (const node of textNodes) {
+    const fontName = node.fontName as FontName
+    families.push(fontName.family)
+    if (!countingFamilyInstances.hasOwnProperty(fontName.family)) {
+      countingFamilyInstances[fontName.family] = 1
+    } else {
+      countingFamilyInstances[fontName.family] += 1
+    }
+    weights.push(fontName.style.toLowerCase())
+    if (node.fontSize) {
+      if (!fontSizes.includes(node.fontSize as number)) {
+        fontSizes.push(node.fontSize as number)
+    }}
+    if (node.lineHeight) {
+      const lineHeight = node.lineHeight as LineHeightCast
+      const fontSize = node.fontSize as number
+      const lhValue = lineHeight.value || 1.2
+      const percentage = (lhValue / fontSize) >= 1 ? toTwoDecimals(lhValue / fontSize) : 1.2
+
+      if (!countingLineHeightInstances.hasOwnProperty(percentage)) {
+        countingLineHeightInstances[percentage] = 1
+      } else {
+        countingLineHeightInstances[percentage] += 1
+      }
+    }
+  }
+  
+  const lineHeightKeys = Object.keys(countingLineHeightInstances)
+  lineHeightKeys.sort((a, b) => {
+    return countingLineHeightInstances[b] - countingLineHeightInstances[a]
+  })
+  console.log(lineHeightKeys)
+  let lhObject: {[key: string]: number} = {}
+  for (let i = 0; i < lineHeightKeys.length; i++) {
+    lhObject[lineHeightLabels[i].toString()] = Number(lineHeightKeys[i])
+  }
+
+  font.lineHeight = {...lhObject}
+
+  const famKeys = Object.keys(countingFamilyInstances)
+  famKeys.sort((a, b) => {
+    return countingFamilyInstances[b] - countingFamilyInstances[a]
+  })
+  fontSizes.sort((a: number, b: number) => {
+    return a - b
+  })
+
+  font.size = assignFontSizeLabels(fontSizeLabels, fontSizes)
+
+  for (let i = 0; i < famKeys.length; i++) {
+    const key = famKeys[i]
+    font.family[familyLabels[i]] = `${key}, sans-serif`
+  }
+
+  for (const weight of weights) {
+    if (!font.weight.hasOwnProperty(weight)) {
+      font.weight[weight] = styleValues[weight]
+    }
+  }
+
+  return font
+
+}
+
+function assignFontSizeLabels(fontSizeLabels: string[], fontSizes: number[]) {
+
+  const startingIndex = Math.floor((fontSizeLabels.length - fontSizes.length) / 2)
+  const obj: {[key: string]: number} = {}
+  for (let i = 0; i < fontSizes.length; i++) {
+    obj[fontSizeLabels[startingIndex + i]] = fontSizes[i]
+  }
+  const keys = Object.keys(obj)
+  keys.sort((a: string, b: string) => {
+    return obj[a] - obj[b]
+  })
+  
+  const sortedObj:{[key: string]: string} = {}
+  for (const key of keys) {
+    sortedObj[key] = `${Number(obj[key]) / 16}rem`
+  }
+  return sortedObj
+}
+
+function toTwoDecimals(num: number) {
+  return (Math.round(num * 100) / 100).toFixed(2);
+}
